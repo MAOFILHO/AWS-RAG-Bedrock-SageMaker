@@ -45,7 +45,7 @@
     "human_steps": []
   },
   "verify_commands": [
-    "python3 -c \"import glob,json; fs=glob.glob('**/*.ipynb',recursive=True); [json.load(open(f)) for f in fs]; print(len(fs),'notebooks parse OK')\""
+    "uv sync --frozen && uv run pytest"
   ],
   "collect": {
     "sources": ["github", "prs", "architecture"],
