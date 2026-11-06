@@ -31,8 +31,10 @@ SQL result rows: {rows}
 Answer the question in one or two plain sentences using ONLY these rows. Do not show SQL."""
 
 WRITE_SQL = re.compile(
-    r"\b(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|REPLACE|ATTACH|DETACH|PRAGMA|VACUUM|REINDEX)\b", re.I
+    r"\b(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|ATTACH|DETACH|PRAGMA|VACUUM|REINDEX)\b|\bREPLACE\b(?!\s*\()",
+    re.I,
 )
+QUOTED = re.compile(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"")
 
 
 def clean_sql(text: str) -> str:
@@ -46,7 +48,7 @@ def guard_sql(sql: str) -> str | None:
     if (
         ";" in statement
         or not statement.upper().startswith(("SELECT", "WITH"))
-        or WRITE_SQL.search(statement)
+        or WRITE_SQL.search(QUOTED.sub("''", statement))
     ):
         return None
     return statement

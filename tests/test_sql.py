@@ -58,6 +58,34 @@ def test_guard_keeps_a_plain_select():
     assert sql.guard_sql("SELECT Name FROM Artist LIMIT 10;") == "SELECT Name FROM Artist LIMIT 10"
 
 
+def test_guard_rejects_two_read_only_statements():
+    assert sql.guard_sql("SELECT 1; SELECT 2") is None
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "SELECT Name FROM Track WHERE Name LIKE '%Update%'",
+        "SELECT replace(Name, 'a', 'b') FROM Artist",
+        'SELECT "Name" FROM Artist WHERE Name = \'it\'\'s a Drop\'',
+    ],
+)
+def test_guard_keeps_reads_that_only_mention_a_keyword(statement):
+    assert sql.guard_sql(statement) == statement
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "WITH x AS (SELECT 1) REPLACE INTO Artist VALUES (1, 'a')",
+        "SELECT 'a' FROM Artist; DROP TABLE Artist",
+        "SELECT 'a' FROM Artist WHERE Name = 'x' DROP TABLE Artist",
+    ],
+)
+def test_guard_still_rejects_a_write_beside_a_literal(statement):
+    assert sql.guard_sql(statement) is None
+
+
 def test_connection_is_read_only_even_past_the_guard(db_copy):
     conn = sql.connect_read_only(db_copy)
     with pytest.raises(sqlite3.OperationalError, match="readonly"):
