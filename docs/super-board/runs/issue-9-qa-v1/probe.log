@@ -1,0 +1,12 @@
+# probe: real langsmith Client spy, ask() on fake models, DEBUG logging on, key=ls-probe-SECRET-999 (endpoint 127.0.0.1:9)
+## nokey
+ANSWER_OK True clients 0
+key-value hits in stdout+stderr: 0
+## key
+ANSWER_OK True clients 1
+key-value hits in stdout+stderr: 0
+## mutants
+drop key check -> 3 failed (test_ask_builds_no_tracing_client_without_a_key among them)
+drop repr=False -> test_the_key_never_shows_in_the_settings_text fails
+## src grep for literal key
+       0

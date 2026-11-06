@@ -2,8 +2,8 @@
 
 import json
 import os
-from dataclasses import dataclass
-from typing import Mapping, Protocol
+from dataclasses import dataclass, field
+from typing import Callable, ContextManager, Mapping, Protocol
 
 import numpy as np
 
@@ -21,12 +21,26 @@ Question: {{question}}
 
 Answer:"""
 
+NOT_ENOUGH_INFO = "I do not have sufficient information in the provided document."
+
+PDF_PROMPT = f"""You are a helpful assistant.
+Answer the question STRICTLY using the context provided below. Do NOT use any external knowledge.
+If the answer is not in the context, respond with: "{NOT_ENOUGH_INFO}"
+
+Context:
+{{context}}
+
+Question: {{question}}
+
+Answer:"""
+
 
 @dataclass(frozen=True)
 class Settings:
     model_id: str = "amazon.nova-lite-v1:0"
     embed_model_id: str = "amazon.titan-embed-text-v2:0"
     region: str = "us-east-1"
+    langsmith_api_key: str | None = field(default=None, repr=False)
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
@@ -36,7 +50,22 @@ class Settings:
             model_id=env.get("RAG_MODEL_ID") or default.model_id,
             embed_model_id=env.get("RAG_EMBED_MODEL_ID") or default.embed_model_id,
             region=env.get("AWS_REGION") or default.region,
+            langsmith_api_key=env.get("LANGSMITH_API_KEY") or None,
         )
+
+
+TRACING_PROJECT = "rag-course"
+
+
+def tracing(settings: Settings, make_client: Callable | None = None) -> ContextManager:
+    """Trace runs in LangSmith while a key is set; with no key, force tracing off and build no client."""
+    from langsmith import Client, tracing_context
+
+    if not settings.langsmith_api_key:
+        return tracing_context(enabled=False)
+
+    client = (make_client or Client)(api_key=settings.langsmith_api_key)
+    return tracing_context(enabled=True, client=client, project_name=TRACING_PROJECT)
 
 
 class AnswerModel(Protocol):

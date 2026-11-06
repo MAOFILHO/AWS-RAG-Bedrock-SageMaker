@@ -11,6 +11,7 @@ app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
 
 class Source(str, Enum):
     web = "web"
+    pdf = "pdf"
     sql = "sql"
 
 
@@ -18,10 +19,11 @@ class Source(str, Enum):
 def ask(
     question: str,
     source: Source = typer.Option(..., "--source", help="Which Source to ask."),
+    pdf: Path | None = typer.Option(None, "--pdf", help="PDF to ask (default: data/invoice.pdf)."),
     db: Path = typer.Option(sql.DEFAULT_DB, "--db", help="SQLite database for --source sql."),
 ) -> None:
     """Ask a question about one Source."""
-    typer.echo(rag_course.ask(source.value, question, db=db))
+    typer.echo(rag_course.ask(source.value, question, pdf=pdf, db=db))
 
 
 @app.command("eval")

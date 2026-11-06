@@ -1,0 +1,4 @@
+tests/test_tracing.py .......                                            [ 72%]
+tests/test_web.py ......                                                 [100%]
+
+======================= 22 passed, 2 deselected in 1.02s =======================
