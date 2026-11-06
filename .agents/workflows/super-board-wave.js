@@ -181,6 +181,8 @@ const LADDERS = {
 }
 const ladder = LADDERS[input.tier || 'medium']
 const tierFor = (cls) => (cls ? ladder[cls.complexity] : undefined)
+const BUILD_MODEL = 'sonnet'
+const REVIEW_MODEL = 'opus'
 // The classify router writes no code — haiku is fine except on --high runs.
 const classifyModel = (input.tier || 'medium') === 'high' ? 'sonnet' : 'haiku'
 
@@ -312,7 +314,9 @@ const results = await pipeline(
   async (prev, card) => {
     const history = []
     if (halted) return { number: card.number, history: [{ lane: 'none', status: 'halted', column: card.status, detail: 'run halted; preserve current work and resume explicitly' }] }
-    const model = tierFor(prev && prev.cls)
+    // Owner's fixed split (2026-11-06): Sonnet builds and tests, Opus reviews. The
+    // complexity ladder (tierFor) no longer picks the model.
+    const model = BUILD_MODEL
     let at = card.status
 
     if (at === 'Ready' && readyLane(card) === 'build') {
@@ -333,9 +337,10 @@ const results = await pipeline(
       at = 'Review'
     }
     if (at === 'Review') {
-      // Reviewer always on session model. No lane-level serialisation: the merge
-      // gate holds the mutex for the merge alone (see the note above).
-      await runLane('review', card, undefined, history)
+      // Reviewer on Opus (code review, PR review, then the merge gate in the same
+      // lane). No lane-level serialisation: the merge gate holds the mutex for the
+      // merge alone (see the note above).
+      await runLane('review', card, REVIEW_MODEL, history)
     }
     return { number: card.number, history }
   }

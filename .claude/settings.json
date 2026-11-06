@@ -71,7 +71,15 @@
       "Bash(git pull:*)",
       "Bash(git fetch:*)",
       "Bash(mkdir:*)",
-      "Bash(pgrep:*)"
+      "Bash(pgrep:*)",
+      "Bash(bash .claude/bin/super-board-:*)",
+      "Bash(python3 .claude/bin/super-board-:*)",
+      "Bash(.claude/bin/super-board-card.sh:*)",
+      "Bash(node --check:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(rm -f .claude/super-board/inflight/workflow-wave.lock)"
     ]
   }
 }
