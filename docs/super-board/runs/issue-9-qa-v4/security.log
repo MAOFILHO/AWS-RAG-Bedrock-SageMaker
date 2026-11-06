@@ -1,0 +1,1 @@
+security pass v4: diff vs staging reviewed (src, pyproject): key read from env only, repr hidden, no print/log/exec/subprocess of it; 0 findings
