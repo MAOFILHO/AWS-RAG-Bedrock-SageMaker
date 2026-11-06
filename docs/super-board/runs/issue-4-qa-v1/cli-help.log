@@ -1,0 +1,14 @@
+$ uv run rag ask --help
+                                                                                
+ Usage: rag ask [OPTIONS] {question}                                            
+                                                                                
+ Ask a question about one Source.                                               
+                                                                                
+╭─ Arguments ──────────────────────────────────────────────────────────────────╮
+│ *    question      <str>  [required]                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ *  --source        <web>  Which Source to ask. [required]                    │
+│    --help                 Show this message and exit.                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
