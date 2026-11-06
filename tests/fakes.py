@@ -49,6 +49,24 @@ def saved_page(url: str) -> str:
     return gzip.decompress((WEB_PAGES / f"{url.rstrip('/').rsplit('/', 1)[-1]}.txt.gz").read_bytes()).decode()
 
 
+class FakeSqlModel:
+    """Writes the SQL scripted for each question, then answers with the result rows it is shown."""
+
+    def __init__(self, sql_for: dict[str, str]):
+        self.sql_for = sql_for
+
+    def answer(self, prompt: str) -> str:
+        question = prompt.split("Question: ", 1)[1].split("\n", 1)[0]
+        if prompt.rstrip().endswith("SQLQuery:"):
+            assert "READ-ONLY" in prompt and "SELECT *" in prompt, "prompt must carry the secure SQL rules"
+            return self.sql_for[question]
+        return "Rows: " + prompt.split("SQL result rows: ", 1)[1].split("\n", 1)[0]
+
+
+def fake_sql_models(sql_for: dict[str, str]) -> Models:
+    return Models(answer=FakeSqlModel(sql_for), embed=FakeEmbeddings())
+
+
 def text_pdf(lines: list[str]) -> bytes:
     """A one-page PDF holding the given lines of text, built by hand."""
     text = " ".join(f"({line}) Tj 0 -14 Td" for line in lines)
