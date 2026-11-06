@@ -45,6 +45,7 @@ const READ_SHAPES = [
   `Read shapes (helper: .claude/bin/super-board-github-read.py --kind <kind> -- <gh args>):`,
   `- issue title+body: --kind issue -- issue view <N> --json number,title,body`,
   `- issue comments: --kind comments -- api repos/{owner}/{repo}/issues/<N>/comments --paginate --slurp (zero comments = [[]])`,
+  `- PR inline review comments: --kind json -- api repos/{owner}/{repo}/pulls/<N>/comments --paginate --slurp (never add --jq: gh rejects --slurp with --jq)`,
   `- other JSON, incl. maybe-empty lists: --kind json -- <gh args> (no --jq that prints a plain string)`,
   `- PR branch+head: --kind head -- pr view <N> --json headRefName,headRefOid --jq '"\\(.headRefName) \\(.headRefOid)"'`,
   `- PR body+head: --kind body -- pr view <N> --json body,headRefOid`,
