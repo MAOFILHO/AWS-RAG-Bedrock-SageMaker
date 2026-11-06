@@ -1,0 +1,18 @@
+# probe v2: real langsmith Client spy, ask() on fake models, DEBUG logging, key=ls-probe-SECRET-V2 (endpoint 127.0.0.1:9)
+## nokey
+  ANSWER_OK True clients 0
+  secret-hits: 0
+## nokey + LANGSMITH_TRACING=true (reviewer's failing case)
+  ANSWER_OK True clients 0
+  secret-hits: 0
+## nokey + LANGCHAIN_TRACING_V2=true
+  ANSWER_OK True clients 0
+  secret-hits: 0
+## key
+  ANSWER_OK True clients 1
+  secret-hits: 0
+## src grep literal key
+       0
+mutant: =========================== short test summary info ============================
+mutant: FAILED tests/test_tracing.py::test_ask_builds_no_client_when_the_env_flag_is_on_but_there_is_no_key
+mutant: 1 failed, 17 passed, 1 deselected in 0.87s
