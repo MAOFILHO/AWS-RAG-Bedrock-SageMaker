@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0 -- /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-9-qa/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-9-qa
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.14.17, anyio-4.16.0
+collecting ... collected 18 items / 1 deselected / 17 selected
+
+tests/test_bedrock.py::test_answer_model_sends_a_converse_request_and_reads_the_text PASSED [  5%]
+tests/test_bedrock.py::test_embedding_model_sends_one_titan_request_per_text PASSED [ 11%]
+tests/test_bedrock.py::test_bedrock_models_use_the_settings_region_and_model_ids PASSED [ 17%]
+tests/test_cli.py::test_help_lists_ask_and_eval PASSED                   [ 23%]
+tests/test_cli.py::test_eval_says_not_built_yet PASSED                   [ 29%]
+tests/test_tracing.py::test_without_a_key_no_tracing_client_is_created PASSED [ 35%]
+tests/test_tracing.py::test_blank_key_counts_as_no_key PASSED            [ 41%]
+tests/test_tracing.py::test_with_a_key_tracing_is_enabled_through_a_client_built_from_it PASSED [ 47%]
+tests/test_tracing.py::test_the_key_never_shows_in_the_settings_text PASSED [ 52%]
+tests/test_tracing.py::test_ask_traces_through_a_client_built_from_the_env_key PASSED [ 58%]
+tests/test_tracing.py::test_ask_builds_no_tracing_client_without_a_key PASSED [ 64%]
+tests/test_web.py::test_golden_question_is_answered_from_the_saved_pages[What is cloud computing?-https://www.ibm.com/think/topics/cloud-computing-cloud computing] PASSED [ 70%]
+tests/test_web.py::test_golden_question_is_answered_from_the_saved_pages[What is data science?-https://www.ibm.com/think/topics/data-science-data science] PASSED [ 76%]
+tests/test_web.py::test_out_of_scope_question_gets_the_fixed_sentence PASSED [ 82%]
+tests/test_web.py::test_rag_ask_source_web_prints_the_answer PASSED      [ 88%]
+tests/test_web.py::test_settings_defaults PASSED                         [ 94%]
+tests/test_web.py::test_settings_overrides PASSED                        [100%]
+
+======================= 17 passed, 1 deselected in 0.83s =======================
