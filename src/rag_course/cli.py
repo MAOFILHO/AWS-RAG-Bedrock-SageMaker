@@ -1,12 +1,23 @@
+from enum import Enum
+
 import typer
+
+import rag_course
 
 app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
 
 
+class Source(str, Enum):
+    web = "web"
+
+
 @app.command()
-def ask() -> None:
-    """Ask a question (not built yet)."""
-    typer.echo("rag ask: not built yet")
+def ask(
+    question: str,
+    source: Source = typer.Option(..., "--source", help="Which Source to ask."),
+) -> None:
+    """Ask a question about one Source."""
+    typer.echo(rag_course.ask(source.value, question))
 
 
 @app.command("eval")
