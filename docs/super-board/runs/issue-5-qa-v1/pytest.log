@@ -1,0 +1,87 @@
+Using CPython 3.12.14
+Creating virtual environment at: .venv
+   Building rag-course @ file://<worktree>
+      Built rag-course @ file://<worktree>
+Prepared 1 package in 233ms
+Installed 55 packages in 110ms
+ + annotated-doc==0.0.5
+ + annotated-types==0.8.0
+ + anyio==4.16.0
+ + beautifulsoup4==4.15.0
+ + boto3==1.43.125
+ + botocore==1.43.125
+ + certifi==2026.10.23
+ + charset-normalizer==3.5.2
+ + distro==1.9.0
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpcore2==2.16.0
+ + httpx==0.28.1
+ + httpx2==2.16.0
+ + idna==3.20
+ + iniconfig==2.3.1
+ + jmespath==1.1.0
+ + jsonpatch==1.44
+ + jsonpointer==3.10
+ + langchain-core==1.7.6
+ + langchain-protocol==0.0.21
+ + langchain-text-splitters==1.1.3
+ + langsmith==0.14.17
+ + markdown-it-py==4.2.0
+ + mdurl==0.1.2
+ + numpy==2.5.4
+ + orjson==3.13.0
+ + packaging==26.3
+ + pluggy==1.7.0
+ + pydantic==2.14.3
+ + pydantic-core==2.50.4
+ + pygments==2.21.0
+ + pypdf==7.0.0
+ + pytest==9.2.0
+ + python-dateutil==2.9.0.post0
+ + pyyaml==6.0.3
+ + rag-course==0.1.0 (from file://<worktree>)
+ + requests==2.34.2
+ + requests-toolbelt==1.0.0
+ + rich==15.0.0
+ + s3transfer==0.19.3
+ + shellingham==1.5.4
+ + six==1.17.0
+ + sniffio==1.3.1
+ + soupsieve==4.0.1
+ + tenacity==9.2.1
+ + truststore==0.10.5
+ + typer==0.27.3
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.5
+ + urllib3==2.8.0
+ + uuid-utils==0.19.0
+ + websockets==17.4
+ + xxhash==4.0.2
+ + zstandard==0.25.0
+============================= test session starts ==============================
+platform darwin -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0 -- <worktree>/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: <worktree>
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.14.17, anyio-4.16.0
+collecting ... collected 17 items / 2 deselected / 15 selected
+
+tests/test_bedrock.py::test_answer_model_sends_a_converse_request_and_reads_the_text PASSED [  6%]
+tests/test_bedrock.py::test_embedding_model_sends_one_titan_request_per_text PASSED [ 13%]
+tests/test_bedrock.py::test_bedrock_models_use_the_settings_region_and_model_ids PASSED [ 20%]
+tests/test_cli.py::test_help_lists_ask_and_eval PASSED                   [ 26%]
+tests/test_cli.py::test_eval_says_not_built_yet PASSED                   [ 33%]
+tests/test_pdf.py::test_golden_question_is_answered_from_the_course_pdf PASSED [ 40%]
+tests/test_pdf.py::test_out_of_scope_question_gets_the_fixed_sentence PASSED [ 46%]
+tests/test_pdf.py::test_rag_ask_source_pdf_works_from_any_folder PASSED  [ 53%]
+tests/test_pdf.py::test_pdf_option_uses_another_file PASSED              [ 60%]
+tests/test_web.py::test_golden_question_is_answered_from_the_saved_pages[What is cloud computing?-https://www.ibm.com/think/topics/cloud-computing-cloud computing] PASSED [ 66%]
+tests/test_web.py::test_golden_question_is_answered_from_the_saved_pages[What is data science?-https://www.ibm.com/think/topics/data-science-data science] PASSED [ 73%]
+tests/test_web.py::test_out_of_scope_question_gets_the_fixed_sentence PASSED [ 80%]
+tests/test_web.py::test_rag_ask_source_web_prints_the_answer PASSED      [ 86%]
+tests/test_web.py::test_settings_defaults PASSED                         [ 93%]
+tests/test_web.py::test_settings_overrides PASSED                        [100%]
+
+======================= 15 passed, 2 deselected in 1.50s =======================
