@@ -9,3 +9,4 @@
 | #5 | qa:advanced → review:advanced | advanced | Done | PR #18 merged, 0be10c8 on staging |
 | #6 | review:human-gate | human-gate | Blocked | PR #17 review passed, merge gate schema keyword "drop table" in test prompts |
 | #9 | review:bounced | bounced | Ready | AC1 fails with LANGSMITH_TRACING=true and no key, loop:rebuild-1 |
+| #9 | build:failed (rebuild pushed) | failed | QA | 41e31ca fix pushed, 18 passed; PR body rewrite and thread resolve denied by classifier; card moved to QA by orchestrator |
