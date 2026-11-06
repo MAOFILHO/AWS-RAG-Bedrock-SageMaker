@@ -5,7 +5,7 @@ import re
 import zlib
 from pathlib import Path
 
-from rag_course.core import DONT_KNOW, Models
+from rag_course.core import DONT_KNOW, NOT_ENOUGH_INFO, Models
 
 WEB_PAGES = Path(__file__).parent / "data" / "web"
 STOPWORDS = {"what", "which", "who", "how", "why", "the", "is", "are", "of", "a", "an", "in", "does", "do", "did"}
@@ -32,12 +32,13 @@ class FakeAnswerModel:
     """Answers with the longest context line holding every question word, else the fixed sentence."""
 
     def answer(self, prompt: str) -> str:
-        assert DONT_KNOW in prompt, "prompt must carry the fixed I-don't-know sentence"
+        fixed = next((s for s in (DONT_KNOW, NOT_ENOUGH_INFO) if s in prompt), None)
+        assert fixed, "prompt must carry a fixed I-don't-know sentence"
         context = prompt.split("Context:\n", 1)[1].split("\n\nQuestion: ", 1)[0]
         question = prompt.split("\n\nQuestion: ", 1)[1].split("\n\nAnswer:", 1)[0]
         wanted = words(question)
         lines = [line for line in context.splitlines() if wanted and wanted <= words(line)]
-        return max(lines, key=len) if lines else DONT_KNOW
+        return max(lines, key=len) if lines else fixed
 
 
 def fake_models() -> Models:
@@ -46,3 +47,25 @@ def fake_models() -> Models:
 
 def saved_page(url: str) -> str:
     return gzip.decompress((WEB_PAGES / f"{url.rstrip('/').rsplit('/', 1)[-1]}.txt.gz").read_bytes()).decode()
+
+
+def text_pdf(lines: list[str]) -> bytes:
+    """A one-page PDF holding the given lines of text, built by hand."""
+    text = " ".join(f"({line}) Tj 0 -14 Td" for line in lines)
+    stream = f"BT /F1 12 Tf 72 720 Td {text} ET".encode()
+    objects = [
+        b"<</Type/Catalog/Pages 2 0 R>>",
+        b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
+        b"<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Resources<</Font<</F1 4 0 R>>>>/Contents 5 0 R>>",
+        b"<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>",
+        b"<</Length %d>>stream\n%s\nendstream" % (len(stream), stream),
+    ]
+    out, offsets = bytearray(b"%PDF-1.4\n"), []
+    for number, body in enumerate(objects, 1):
+        offsets.append(len(out))
+        out += b"%d 0 obj\n%s\nendobj\n" % (number, body)
+    xref = len(out)
+    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+    out += b"".join(b"%010d 00000 n \n" % offset for offset in offsets)
+    out += b"trailer\n<</Size %d/Root 1 0 R>>\nstartxref\n%d\n%%%%EOF\n" % (len(objects) + 1, xref)
+    return bytes(out)
