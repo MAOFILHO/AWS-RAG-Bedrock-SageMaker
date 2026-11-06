@@ -1,0 +1,15 @@
+                                                                                
+ Usage: rag ask [OPTIONS] {question}                                            
+                                                                                
+ Ask a question about one Source.                                               
+                                                                                
+╭─ Arguments ──────────────────────────────────────────────────────────────────╮
+│ *    question      <str>  [required]                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ *  --source        <web|sql>  Which Source to ask. [required]                │
+│    --db            <path>     SQLite database for --source sql.              │
+│                               [default: data/Chinook.db]                     │
+│    --help                     Show this message and exit.                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
