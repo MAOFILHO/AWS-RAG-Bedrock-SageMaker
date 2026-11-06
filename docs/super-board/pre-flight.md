@@ -17,4 +17,4 @@ Checked 2026-11-05 for issues #2 to #10 on board #5.
 ## Environment
 
 - [✓] Base branch `staging` exists.
-- [ ] `verify_commands` is notebook-JSON only. Change it to `uv sync --frozen && uv run pytest` when #3 merges. Orchestrator action.
+- [✓] `verify_commands` is `uv sync --frozen && uv run pytest` (changed 2026-11-06 after #3 merged).
