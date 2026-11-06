@@ -21,6 +21,19 @@ Question: {{question}}
 
 Answer:"""
 
+NOT_ENOUGH_INFO = "I do not have sufficient information in the provided document."
+
+PDF_PROMPT = f"""You are a helpful assistant.
+Answer the question STRICTLY using the context provided below. Do NOT use any external knowledge.
+If the answer is not in the context, respond with: "{NOT_ENOUGH_INFO}"
+
+Context:
+{{context}}
+
+Question: {{question}}
+
+Answer:"""
+
 
 @dataclass(frozen=True)
 class Settings:
