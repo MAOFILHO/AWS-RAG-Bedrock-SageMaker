@@ -1,4 +1,5 @@
 .DS_Store
+.env
 .claude/skills/impeccable/
 .claude/skills/humanizer/
 .claude/super-board/active
