@@ -2,9 +2,9 @@
 
 from typing import Callable
 
-from rag_course import web
 from langsmith import traceable
 
+from rag_course import web
 from rag_course.core import Models, Settings, bedrock_models, tracing
 
 

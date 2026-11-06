@@ -2,7 +2,6 @@
 
 import json
 import os
-from contextlib import nullcontext
 from dataclasses import dataclass, field
 from typing import Callable, ContextManager, Mapping, Protocol
 
@@ -46,10 +45,11 @@ TRACING_PROJECT = "K21"
 
 
 def tracing(settings: Settings, make_client: Callable | None = None) -> ContextManager:
-    """Trace runs in LangSmith while a key is set; with no key, do nothing and build no client."""
-    if not settings.langsmith_api_key:
-        return nullcontext()
+    """Trace runs in LangSmith while a key is set; with no key, force tracing off and build no client."""
     from langsmith import Client, tracing_context
+
+    if not settings.langsmith_api_key:
+        return tracing_context(enabled=False)
 
     client = (make_client or Client)(api_key=settings.langsmith_api_key)
     return tracing_context(enabled=True, client=client, project_name=TRACING_PROJECT)

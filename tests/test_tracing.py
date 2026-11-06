@@ -3,7 +3,9 @@
 from unittest.mock import MagicMock
 
 import langsmith
+import langsmith.utils
 from fakes import fake_models, saved_page
+from langsmith import run_trees
 from langsmith.utils import tracing_is_enabled
 
 import rag_course
@@ -52,7 +54,7 @@ def test_the_key_never_shows_in_the_settings_text():
 
 
 def mock_client_factory(keys):
-    def make(api_key):
+    def make(api_key=None, **_):
         keys.append(api_key)
         return MagicMock()
 
@@ -73,4 +75,19 @@ def test_ask_builds_no_tracing_client_without_a_key(monkeypatch):
     monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
     monkeypatch.setattr(langsmith, "Client", mock_client_factory(keys))
     rag_course.ask("web", "What is cloud computing?", models=fake_models(), fetch=saved_page)
+    assert keys == []
+
+
+def test_ask_builds_no_client_when_the_env_flag_is_on_but_there_is_no_key(monkeypatch):
+    keys = []
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    monkeypatch.setenv("LANGSMITH_TRACING", "true")
+    langsmith.utils.get_env_var.cache_clear()
+    monkeypatch.setattr(run_trees, "_CLIENT", None)
+    monkeypatch.setattr(run_trees, "Client", mock_client_factory(keys))
+    try:
+        rag_course.ask("web", "What is cloud computing?", models=fake_models(), fetch=saved_page)
+    finally:
+        monkeypatch.undo()
+        langsmith.utils.get_env_var.cache_clear()
     assert keys == []
