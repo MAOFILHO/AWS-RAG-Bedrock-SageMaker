@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -30,7 +31,27 @@ def ask(pipeline: str, case: dict, models) -> str:
 
 
 def missing(answer: str, expect: list) -> list:
-    return [item for item in expect if str(item).lower() not in answer.lower()]
+    plain = re.sub(r"(?<=\d),(?=\d{3})", "", answer).lower()
+    return [item for item in expect if not found(item, plain)]
+
+
+def found(item, plain: str) -> bool:
+    if isinstance(item, int):
+        return re.search(rf"(?<!\d){item}(?!\d)", plain) is not None
+    return str(item).lower() in plain
+
+
+@pytest.mark.parametrize(
+    ("answer", "expect", "left"),
+    [
+        ("1,297 tracks", [1297], []),
+        ("1297 tracks", [1297], []),
+        ("12,970 tracks", [1297], [1297]),
+        ("Rock", ["Rock"], []),
+    ],
+)
+def test_missing_ignores_thousands_separators(answer, expect, left):
+    assert missing(answer, expect) == left
 
 
 @pytest.mark.parametrize(("name", "count"), COUNTS.items())
