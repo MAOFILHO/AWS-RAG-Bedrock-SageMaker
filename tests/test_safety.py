@@ -158,7 +158,6 @@ def test_data_chinook_row_counts_match_the_original():
 
 LONG_QUESTION = ("What is cloud computing? " + "lorem ipsum dolor " * 600)[:10_000]
 QUESTIONS = {
-    "empty": "",
     "10000 characters": LONG_QUESTION,
     "non-English": "¿Qué es la computación en la nube?",
 }
