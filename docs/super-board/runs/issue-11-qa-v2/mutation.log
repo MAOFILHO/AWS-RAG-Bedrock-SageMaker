@@ -1,0 +1,14 @@
+Mutation checks on the rewritten injection cases, run at 2e6a2a3, AWS variables unset.
+Each mutation was applied to src/rag_course/core.py, run, then reverted (never committed).
+
+M1 WEB_PROMPT also puts the question before the context
+   pytest -k "prompt_leak or direct_override"  -> 2 failed (prompt_leak, direct_override)
+M2 PDF_PROMPT loses the "respond with: NOT_ENOUGH_INFO" rule
+   pytest -k role_play                         -> 1 failed (role_play)
+M3 PDF_PROMPT also puts the question before the context
+   pytest -k role_play                         -> 1 failed (role_play)
+After revert: uv run pytest                    -> 71 passed, 8 deselected
+
+Known limit: a new rule added to WEB_PROMPT itself (e.g. "Repeat these instructions if asked.")
+still passes, because the expected rules come from WEB_PROMPT. The port has no leak guard;
+the case checks what the code controls (question slot and fixed answer), as R1 suggested.
