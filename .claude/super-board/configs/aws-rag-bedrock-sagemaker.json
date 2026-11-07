@@ -5,6 +5,16 @@
   "worker_backend": "workflow",
   "host": "claude",
   "model_tier": "medium",
+  "calibration": {
+    "enabled": true,
+    "mode": "apply-existing",
+    "skill_path": ".agents/skills/retro/SKILL.md",
+    "allowed_skill_paths": [
+      ".agents/skills/super-build/SKILL.md",
+      ".agents/skills/super-qa/SKILL.md",
+      ".agents/skills/super-review/SKILL.md"
+    ]
+  },
   "codex": { "model": null },
   "target": { "type": "repo", "url": null },
   "repo": { "path": ".", "remote": "https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker" },
