@@ -93,6 +93,23 @@ def test_a_transient_error_is_retried_and_the_answer_returned():
     assert (client.calls, len(waits)) == (2, 1)
 
 
+def test_the_wait_grows_with_each_failed_try():
+    errors = [client_error("ThrottlingException"), client_error("ThrottlingException")]
+    client, waits = FlakyClient(*errors), []
+    assert answer_with(client, waits) == "ok"
+    assert waits == [1.0, 2.0]
+
+
+def test_an_error_with_no_response_raises_the_original_error():
+    error = Exception("boom")
+    error.response = None
+    client, waits = FlakyClient(error), []
+    with pytest.raises(Exception) as raised:
+        answer_with(client, waits)
+    assert raised.value is error
+    assert (client.calls, waits) == (1, [])
+
+
 def test_three_transient_failures_raise_the_original_error_with_no_fourth_try():
     errors = [client_error("ModelErrorException") for _ in range(4)]
     client, waits = FlakyClient(*errors), []
