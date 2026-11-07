@@ -39,6 +39,9 @@ def ask(
     db: Path = typer.Option(sql.DEFAULT_DB, "--db", help="SQLite database for --source sql."),
 ) -> None:
     """Ask a question about one Source."""
+    if not question.strip():
+        typer.echo("Error: question must not be empty", err=True)
+        raise typer.Exit(code=2)
     typer.echo(rag_course.ask(source.value, question, pdf=pdf, db=db))
 
 
