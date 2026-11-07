@@ -398,7 +398,8 @@ two complete builds. In order, no shortcuts:
    (`git merge-base --is-ancestor <sha> origin/<base>`).
 4. Only then: close the issue, move card Review → **Done**, post the ✅ comment citing
    the merge commit sha.
-5. Merge refused (failing checks, conflicts, branch protection) → card Review →
+5. Gate exit 5 or a conflict with the base branch → follow run.md "The rebase pass": card → **Ready** with label `loop:rebase`, not Blocked.
+   Other refusals (failing checks, branch protection) → card Review →
    **Blocked** with the §4 Block template naming the blocker. Never leave it in Review;
    a card left in Review gets re-picked and re-reviewed indefinitely.
 
