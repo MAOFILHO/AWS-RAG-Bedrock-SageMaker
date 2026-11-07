@@ -87,3 +87,14 @@ def text_pdf(lines: list[str]) -> bytes:
     out += b"".join(b"%010d 00000 n \n" % offset for offset in offsets)
     out += b"trailer\n<</Size %d/Root 1 0 R>>\nstartxref\n%d\n%%%%EOF\n" % (len(objects) + 1, xref)
     return bytes(out)
+
+
+class EchoContextModel:
+    """Answers with the retrieved context itself, so a test sees exactly what the Pipeline fetched."""
+
+    def answer(self, prompt: str) -> str:
+        return prompt.split("Context:\n", 1)[1].split("\n\nQuestion: ", 1)[0]
+
+
+def echo_models() -> Models:
+    return Models(answer=EchoContextModel(), embed=FakeEmbeddings())
