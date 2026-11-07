@@ -99,7 +99,7 @@ def with_retry(call: Callable, sleep: Callable[[float], None]):
         try:
             return call()
         except Exception as error:
-            code = getattr(error, "response", {}).get("Error", {}).get("Code")
+            code = (getattr(error, "response", None) or {}).get("Error", {}).get("Code")
             if code not in TRANSIENT_ERRORS or attempt == TRIES:
                 raise
             sleep(WAIT_SECONDS * attempt)
