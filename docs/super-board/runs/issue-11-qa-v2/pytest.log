@@ -1,6 +1,5 @@
 ============================= test session starts ==============================
 platform darwin -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0 -- /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-11-qa/.venv/bin/python
-cachedir: .pytest_cache
 rootdir: /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-11-qa
 configfile: pyproject.toml
 testpaths: tests
@@ -79,4 +78,4 @@ tests/test_web.py::test_rag_ask_source_web_prints_the_answer PASSED      [ 97%]
 tests/test_web.py::test_settings_defaults PASSED                         [ 98%]
 tests/test_web.py::test_settings_overrides PASSED                        [100%]
 
-======================= 71 passed, 8 deselected in 3.84s =======================
+======================= 71 passed, 8 deselected in 2.48s =======================
