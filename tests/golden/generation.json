@@ -1,0 +1,38 @@
+[
+  {
+    "pipeline": "web",
+    "question": "What is cloud computing?",
+    "expect": [
+      "on-demand"
+    ]
+  },
+  {
+    "pipeline": "web",
+    "question": "What are the benefits of cloud computing?",
+    "expect": [
+      "scalab"
+    ]
+  },
+  {
+    "pipeline": "web",
+    "question": "What is data science?",
+    "expect": [
+      "statistic"
+    ]
+  },
+  {
+    "pipeline": "pdf",
+    "question": "What developer resources are available for Amazon Q?",
+    "expect": [
+      "SDK",
+      "API"
+    ]
+  },
+  {
+    "pipeline": "pdf",
+    "question": "What business applications does Amazon Q have?",
+    "expect": [
+      "enterprise"
+    ]
+  }
+]
