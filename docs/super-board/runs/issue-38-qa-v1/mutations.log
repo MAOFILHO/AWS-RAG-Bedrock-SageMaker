@@ -1,0 +1,7 @@
+M1 AC2 reword prompt rule | expect green | 1 passed in 0.14s
+M2 AC2 drop rule line | expect green | 1 passed in 0.14s
+M3 AC3 guard refuses every query | expect red | 1 failed in 0.17s
+M4 AC3 table info left out of prompt | expect red | 1 failed in 0.17s
+M5 AC3 ask returns REFUSAL | expect red | 1 failed in 0.17s
+--- baseline: old stub (staging) under M1 reword ---
+B1 old stub, reword prompt rule | expect red (brittle) | 1 failed in 0.19s
