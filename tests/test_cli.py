@@ -50,3 +50,26 @@ def test_ask_passes_normal_question_unchanged(monkeypatch):
     result = runner.invoke(app, ["ask", " hi ", "--source", "web"])
     assert result.exit_code == 0
     assert calls[0][0] == ("web", " hi ")
+
+
+def test_version_prints_package_version():
+    from importlib.metadata import version
+
+    result = runner.invoke(app, ["--version"], prog_name="rag")
+    assert result.exit_code == 0
+    assert result.output.strip() == f"rag {version('rag-course')}"
+
+
+def test_version_reads_installed_metadata_not_a_copied_string(monkeypatch):
+    import rag_course.cli as cli
+
+    monkeypatch.setattr(cli, "package_version", lambda dist: f"9.9.9-{dist}")
+    result = runner.invoke(app, ["--version"], prog_name="rag")
+    assert result.exit_code == 0
+    assert result.output.strip() == "rag 9.9.9-rag-course"
+
+
+def test_help_lists_version():
+    result = runner.invoke(app, ["--help"])
+    assert result.exit_code == 0
+    assert "--version" in result.output
