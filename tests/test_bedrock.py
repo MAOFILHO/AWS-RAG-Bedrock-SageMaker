@@ -5,6 +5,8 @@ import io
 import json
 
 import boto3
+import pytest
+from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from botocore.stub import Stubber
 
@@ -62,3 +64,61 @@ def test_bedrock_models_use_the_settings_region_and_model_ids():
     models = bedrock_models(Settings("m", "e", "eu-west-1"))
     assert models.answer.client.meta.region_name == "eu-west-1"
     assert (models.answer.model_id, models.embed.model_id) == ("m", "e")
+
+
+def client_error(code):
+    return ClientError({"Error": {"Code": code, "Message": "boom"}}, "Converse")
+
+
+class FlakyClient:
+    """Raises each scripted error in turn, then returns a Converse answer."""
+
+    def __init__(self, *errors):
+        self.errors, self.calls = list(errors), 0
+
+    def converse(self, **_):
+        self.calls += 1
+        if self.errors:
+            raise self.errors.pop(0)
+        return {"output": {"message": {"content": [{"text": "ok"}]}}}
+
+
+def answer_with(client, waits):
+    return BedrockAnswerModel(client, "m", sleep=waits.append).answer("p")
+
+
+def test_a_transient_error_is_retried_and_the_answer_returned():
+    client, waits = FlakyClient(client_error("ModelErrorException")), []
+    assert answer_with(client, waits) == "ok"
+    assert (client.calls, len(waits)) == (2, 1)
+
+
+def test_three_transient_failures_raise_the_original_error_with_no_fourth_try():
+    errors = [client_error("ModelErrorException") for _ in range(4)]
+    client, waits = FlakyClient(*errors), []
+    with pytest.raises(ClientError) as raised:
+        answer_with(client, waits)
+    assert raised.value is errors[2]
+    assert (client.calls, len(waits)) == (3, 2)
+
+
+def test_a_non_transient_error_is_not_retried():
+    client, waits = FlakyClient(client_error("AccessDeniedException")), []
+    with pytest.raises(ClientError):
+        answer_with(client, waits)
+    assert (client.calls, waits) == (1, [])
+
+
+def test_the_embedding_call_is_retried_too():
+    class FlakyEmbedClient:
+        calls = 0
+
+        def invoke_model(self, **_):
+            self.calls += 1
+            if self.calls == 1:
+                raise client_error("ThrottlingException")
+            return {"body": io.BytesIO(json.dumps({"embedding": [1.0]}).encode())}
+
+    client = FlakyEmbedClient()
+    assert BedrockEmbeddingModel(client, "e", sleep=lambda _: None).embed(["t"]) == [[1.0]]
+    assert client.calls == 2
