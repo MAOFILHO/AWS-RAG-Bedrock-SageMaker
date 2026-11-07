@@ -2,6 +2,7 @@
 
 import json
 import os
+import time
 from dataclasses import dataclass, field
 from typing import Callable, ContextManager, Mapping, Protocol
 
@@ -82,28 +83,56 @@ class Models:
     embed: EmbeddingModel
 
 
+TRANSIENT_ERRORS = {
+    "ModelErrorException",
+    "ModelTimeoutException",
+    "ThrottlingException",
+    "ServiceUnavailableException",
+    "InternalServerException",
+}
+TRIES, WAIT_SECONDS = 3, 1.0
+
+
+def with_retry(call: Callable, sleep: Callable[[float], None]):
+    """Run call, retrying a transient Bedrock error up to TRIES times in all; raise the last error."""
+    for attempt in range(1, TRIES + 1):
+        try:
+            return call()
+        except Exception as error:
+            code = getattr(error, "response", {}).get("Error", {}).get("Code")
+            if code not in TRANSIENT_ERRORS or attempt == TRIES:
+                raise
+            sleep(WAIT_SECONDS * attempt)
+
+
 class BedrockAnswerModel:
-    def __init__(self, client, model_id: str):
-        self.client, self.model_id = client, model_id
+    def __init__(self, client, model_id: str, sleep: Callable[[float], None] = time.sleep):
+        self.client, self.model_id, self.sleep = client, model_id, sleep
 
     def answer(self, prompt: str) -> str:
-        response = self.client.converse(
-            modelId=self.model_id,
-            messages=[{"role": "user", "content": [{"text": prompt}]}],
-            inferenceConfig={"temperature": 0},
+        response = with_retry(
+            lambda: self.client.converse(
+                modelId=self.model_id,
+                messages=[{"role": "user", "content": [{"text": prompt}]}],
+                inferenceConfig={"temperature": 0},
+            ),
+            self.sleep,
         )
         return response["output"]["message"]["content"][0]["text"]
 
 
 class BedrockEmbeddingModel:
-    def __init__(self, client, model_id: str):
-        self.client, self.model_id = client, model_id
+    def __init__(self, client, model_id: str, sleep: Callable[[float], None] = time.sleep):
+        self.client, self.model_id, self.sleep = client, model_id, sleep
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         vectors = []
         for text in texts:
-            response = self.client.invoke_model(
-                modelId=self.model_id, body=json.dumps({"inputText": text})
+            response = with_retry(
+                lambda: self.client.invoke_model(
+                    modelId=self.model_id, body=json.dumps({"inputText": text})
+                ),
+                self.sleep,
             )
             vectors.append(json.loads(response["body"].read())["embedding"])
         return vectors
