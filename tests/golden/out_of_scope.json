@@ -1,0 +1,14 @@
+[
+  {
+    "pipeline": "web",
+    "question": "What is the capital of France?"
+  },
+  {
+    "pipeline": "web",
+    "question": "What was IBM's total revenue in 2024?"
+  },
+  {
+    "pipeline": "pdf",
+    "question": "What is Amazon Q's annual revenue?"
+  }
+]
