@@ -5,6 +5,7 @@ from pathlib import Path
 import typer
 
 import rag_course
+from rag_course import pdf as pdf_pipeline
 from rag_course import sql
 
 app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
@@ -42,6 +43,11 @@ def ask(
     if not question.strip():
         typer.echo("Error: question must not be empty", err=True)
         raise typer.Exit(code=2)
+    if source is Source.pdf:
+        path = pdf or pdf_pipeline.DEFAULT_PDF
+        if not path.is_file():
+            typer.echo(f"Error: PDF not found: {path}", err=True)
+            raise typer.Exit(code=2)
     typer.echo(rag_course.ask(source.value, question, pdf=pdf, db=db))
 
 
