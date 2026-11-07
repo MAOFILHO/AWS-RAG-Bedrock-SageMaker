@@ -1,4 +1,5 @@
 import hashlib
+import re
 import shutil
 import sqlite3
 from pathlib import Path
@@ -99,12 +100,13 @@ def test_bad_sql_gets_a_rephrase_message():
 
 
 class ObedientModel:
-    """Writes the Invoice.Country query that fails, unless the prompt tells it to use the schema's names."""
+    """Writes the sales query from the Invoice columns the prompt's table info lists, not from the prompt's wording."""
 
     def answer(self, prompt: str) -> str:
         if not prompt.rstrip().endswith("SQLQuery:"):
             return "Rows: " + prompt.split("SQL result rows: ", 1)[1].split("\n", 1)[0]
-        column = "BillingCountry" if "BillingCountry, not Country" in prompt else "Country"
+        invoice = re.search(r"CREATE TABLE \W?Invoice\W.*?\n\)", prompt, re.S | re.I)
+        column = "BillingCountry" if invoice and "BillingCountry" in invoice.group(0) else "Country"
         return f"SELECT {column}, SUM(Total) AS TotalSales FROM Invoice GROUP BY {column} ORDER BY TotalSales DESC LIMIT 1"
 
 
