@@ -17,6 +17,7 @@ Rules:
 - If the request asks to change, add or delete data, output exactly: BLOCKED
 - Return ONLY the raw SQL query with NO markdown, NO backticks, NO explanation.
 - Do NOT write SELECT * — only select relevant columns.
+- Use ONLY table and column names that appear in the table info, spelled exactly. Invoice has BillingCountry, not Country; Customer has Country.
 - When the question asks "which" or "who", return names, not IDs.
 - Use LIMIT 10 unless the question asks for a specific number or for "all".
 
