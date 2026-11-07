@@ -1,0 +1,68 @@
+[
+  {
+    "question": "How many customers are there?",
+    "sql": "SELECT COUNT(*) FROM Customer",
+    "expect": [
+      59
+    ]
+  },
+  {
+    "question": "How many clients do we have?",
+    "sql": "SELECT COUNT(*) FROM Customer",
+    "expect": [
+      59
+    ]
+  },
+  {
+    "question": "How many tracks are in the database?",
+    "sql": "SELECT COUNT(*) FROM Track",
+    "expect": [
+      3503
+    ]
+  },
+  {
+    "question": "How many employees are there?",
+    "sql": "SELECT COUNT(*) FROM Employee",
+    "expect": [
+      8
+    ]
+  },
+  {
+    "question": "For how many customers is the company value missing?",
+    "sql": "SELECT COUNT(*) FROM Customer WHERE Company IS NULL",
+    "expect": [
+      49
+    ]
+  },
+  {
+    "question": "Which artist has the most albums?",
+    "sql": "SELECT ar.Name, COUNT(*) AS Albums FROM Artist ar JOIN Album al ON al.ArtistId = ar.ArtistId GROUP BY ar.ArtistId ORDER BY Albums DESC LIMIT 1",
+    "expect": [
+      "Iron Maiden",
+      21
+    ]
+  },
+  {
+    "question": "Which genre has the most tracks?",
+    "sql": "SELECT g.Name, COUNT(*) AS Tracks FROM Genre g JOIN Track t ON t.GenreId = g.GenreId GROUP BY g.GenreId ORDER BY Tracks DESC LIMIT 1",
+    "expect": [
+      "Rock",
+      1297
+    ]
+  },
+  {
+    "question": "Which country has the highest total sales?",
+    "sql": "SELECT BillingCountry, SUM(Total) AS Sales FROM Invoice GROUP BY BillingCountry ORDER BY Sales DESC LIMIT 1",
+    "expect": [
+      "USA"
+    ]
+  },
+  {
+    "question": "Which employee supports the most customers?",
+    "sql": "SELECT e.LastName, COUNT(*) AS Customers FROM Employee e JOIN Customer c ON c.SupportRepId = e.EmployeeId GROUP BY e.EmployeeId ORDER BY Customers DESC LIMIT 1",
+    "expect": [
+      "Peacock",
+      21
+    ]
+  }
+]
