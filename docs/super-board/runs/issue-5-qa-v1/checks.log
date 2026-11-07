@@ -1,0 +1,24 @@
+## mutation 1: DEFAULT_PDF relative to cwd
+=========================== short test summary info ============================
+FAILED tests/test_pdf.py::test_rag_ask_source_pdf_works_from_any_folder - Ass...
+1 failed, 3 passed, 1 deselected in 0.72s
+## mutation 2: --pdf ignored
+=========================== short test summary info ============================
+FAILED tests/test_pdf.py::test_pdf_option_uses_another_file - AssertionError:...
+1 failed, 3 passed, 1 deselected in 0.65s
+## mutation 3: pdf uses WEB_PROMPT
+=========================== short test summary info ============================
+FAILED tests/test_pdf.py::test_out_of_scope_question_gets_the_fixed_sentence
+1 failed, 3 passed, 1 deselected in 0.63s
+## offline: empty HOME, no AWS env
+....                                                                     [100%]
+4 passed, 1 deselected in 0.66s
+## real binary from another folder
+<scratch>
+│ *  --source        <web|pdf>  Which Source to ask. [required]                │
+│    --pdf           <path>     PDF to ask (default: data/invoice.pdf).            │
+data/invoice.pdf True 3 pages
+## edge: --pdf missing file
+FileNotFoundError: [Errno 2] No such file or directory: '/nonexistent.pdf'
+## edge: PDF with no text (zero chunks)
+AxisError axis 1 is out of bounds for array of dimension 1

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "run_id": "2026-11-07-card-23",
+  "source": "final-reconciliation",
+  "outcome": "completed",
+  "selected_issues": [23],
+  "active_workers": [],
+  "pending": [],
+  "manifest": "docs/super-board/runs/2026-11-07-card-23/manifest.md",
+  "cards": [
+    {
+      "number": 23,
+      "state": "merged",
+      "pr": 24,
+      "pr_url": "https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/pull/24",
+      "reviewed_head_sha": "84a0bebffe0d8019c48baa53f61efe0f16ea3ed9",
+      "merge_sha": "85f870cb194a4bb0346cc96fe5a577fa8a8a29ef",
+      "evidence_files": ["docs/super-board/runs/2026-11-07-card-23/evidence.md"]
+    }
+  ]
+}

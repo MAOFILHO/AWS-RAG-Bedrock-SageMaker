@@ -33,6 +33,18 @@ Reads `Ready` from the repo's feature project. Resolution order:
 
 Surface: `🎯 Reading project: <owner>/<title> (#<n>), column "Ready"`.
 
+## Command shape — one call per command
+
+The auto mode classifier matches allow rules against the whole command. A compound command
+(`|`, `;`, `&&`, a heredoc, or a shell variable set on the same line) falls outside a rule such
+as `Bash(gh pr ready:*)` and is judged on intent, often denied. Measured 2026-11-07: a bare
+`bash .claude/bin/super-board-merge-gate.sh ...` ran; the same call with `| tail` and `; echo` was denied.
+
+- Run each `gh`, `git` and gate call as its own Bash call, starting with the command name.
+- Write message and body files first with the Write tool, then pass the path with `--body-file`.
+- Never pipe a `gh` write or the gate. Read the full output, or redirect it to a file in the scratchpad in a separate call.
+- Never put `gh pr ready`, `gh pr edit`, `gh pr comment`, `gh api` writes or the gate in a multi-line script.
+
 ## Algorithm
 
 ### 0. Pre-flight
@@ -242,7 +254,7 @@ Follow spec `.claude/skills/super-board/references/run.md` → Builder (first pa
 2. Branch `issue-<N>-<slug>` from `config.base_branch`.
 3. Docs check (section below) — if the ticket touches a third-party surface, an upgrade, or auth/billing, read the current official docs first.
 4. Implement smallest safe change covering ACs — under the PR size cap (section below).
-5. Commit + push (always).
+5. Commit, then `git fetch origin` and `git rebase origin/<base>` (shared test files conflict even when source files differ), re-run the checks, then push (always).
 6. Open **draft PR** with the PR description template from `run.md` — title in commit-subject format, every marker block filled, `Docs:` bullets in Solution, Door + Blast radius in Risk.
 7. Follow [PR author notes](../super-board/references/pr-author-notes.md), then post the `[builder] [report]` PR comment + the short issue comment with the PR URL (writing-standard.md § 4).
 8. Move card Ready/Building → QA.

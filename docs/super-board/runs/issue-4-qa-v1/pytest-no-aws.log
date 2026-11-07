@@ -1,0 +1,20 @@
+$ env -u AWS_PROFILE AWS_ACCESS_KEY_ID= AWS_SECRET_ACCESS_KEY= AWS_CONFIG_FILE=/dev/null AWS_SHARED_CREDENTIALS_FILE=/dev/null uv run pytest tests/test_web.py tests/test_bedrock.py -v
+============================= test session starts ==============================
+platform darwin -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0 -- /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-4-qa/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-4-qa
+configfile: pyproject.toml
+plugins: langsmith-0.14.17, anyio-4.16.0
+collecting ... collected 10 items / 1 deselected / 9 selected
+
+tests/test_web.py::test_golden_question_is_answered_from_the_saved_pages[What is cloud computing?-https://www.ibm.com/think/topics/cloud-computing-cloud computing] PASSED [ 11%]
+tests/test_web.py::test_golden_question_is_answered_from_the_saved_pages[What is data science?-https://www.ibm.com/think/topics/data-science-data science] PASSED [ 22%]
+tests/test_web.py::test_out_of_scope_question_gets_the_fixed_sentence PASSED [ 33%]
+tests/test_web.py::test_rag_ask_source_web_prints_the_answer PASSED      [ 44%]
+tests/test_web.py::test_settings_defaults PASSED                         [ 55%]
+tests/test_web.py::test_settings_overrides PASSED                        [ 66%]
+tests/test_bedrock.py::test_answer_model_sends_a_converse_request_and_reads_the_text PASSED [ 77%]
+tests/test_bedrock.py::test_embedding_model_sends_one_titan_request_per_text PASSED [ 88%]
+tests/test_bedrock.py::test_bedrock_models_use_the_settings_region_and_model_ids PASSED [100%]
+
+======================= 9 passed, 1 deselected in 2.65s ========================

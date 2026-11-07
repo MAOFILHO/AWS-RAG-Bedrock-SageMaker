@@ -1,0 +1,11 @@
+'SELECT 1; SELECT 2' -> None
+'SELECT Name FROM Artist -- ; DROP TABLE x' -> None
+"ATTACH 'x.db' AS x" -> None
+"VACUUM INTO '/tmp/x.db'" -> None
+'  select Name from Artist limit 3  ' -> 'select Name from Artist limit 3'
+'WITH a AS (SELECT Name FROM Artist) SELECT Name FROM a' -> 'WITH a AS (SELECT Name FROM Artist) SELECT Name FROM a'
+"SELECT replace(Name,'a','b') FROM Artist" -> None
+"SELECT Name FROM Track WHERE Name LIKE '%Update%'" -> None
+"SELECT load_extension('x')" -> "SELECT load_extension('x')"
+load_extension: OperationalError not authorized
+two statements: ProgrammingError You can only execute one statement at a time.
