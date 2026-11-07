@@ -16,5 +16,6 @@
 | #29 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #33 merged to staging 4b5319b through the gate, pinned to head 69f1a0a. 123 passed with AWS cleared. Truth check 90. Open nits: no test asserts wait values; core.py:102 AttributeError if response is None. |
 | #30 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #32 merged to staging e6f59af through the gate. 123 passed. Truth check 95. |
 | #31 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #34 merged to staging 0512130 through the gate, pinned to head 50fa57a. 120 passed offline. Live total-sales golden passed. Open nit: stub test depends on exact prompt wording. |
+| #35 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #36 merged to staging 0b8ac83 through the gate, pinned to head baa9e8e. 129 passed offline. No findings, no human step. |
 | #26 | preflight:blocked | blocked | Blocked | Same file (src/rag_course/cli.py) as #25. Sequenced behind #25 with blocked-by: 25. Sweep returns it to Ready when #25 closes. |
 | #23 | build:advanced → qa:advanced → review:advanced | merged | Done | Unattended test wave. PR #24 merged to staging 85f870c through the merge gate, pinned to head 84a0beb. 114 passed with AWS removed. Truth check 93/100. No human step. |

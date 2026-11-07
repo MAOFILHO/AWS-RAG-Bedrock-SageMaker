@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "run_id": "2026-11-07-cards-29-30-31-35",
+  "source": "final-reconciliation",
+  "outcome": "completed",
+  "selected_issues": [29, 30, 31, 35],
+  "active_workers": [],
+  "pending": [],
+  "manifest": "docs/super-board/runs/2026-11-07-cards-29-30-31-35/manifest.md",
+  "cards": [
+    {
+      "number": 29,
+      "state": "merged",
+      "pr": 33,
+      "pr_url": "https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/pull/33",
+      "reviewed_head_sha": "69f1a0ad047a3b5735ba642a2702c77ccbb61cca",
+      "merge_sha": "4b5319b3072412d77f389bce0499de317203323b",
+      "evidence_files": ["docs/super-board/runs/2026-11-07-cards-29-30-31-35/evidence.md"]
+    },
+    {
+      "number": 30,
+      "state": "merged",
+      "pr": 32,
+      "pr_url": "https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/pull/32",
+      "reviewed_head_sha": "7de98bb8749c95496d9f617b6ba339c7a1b93096",
+      "merge_sha": "e6f59af49eaa37fc0a4225504e5cbc0f02330e7d",
+      "evidence_files": ["docs/super-board/runs/2026-11-07-cards-29-30-31-35/evidence.md"]
+    },
+    {
+      "number": 31,
+      "state": "merged",
+      "pr": 34,
+      "pr_url": "https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/pull/34",
+      "reviewed_head_sha": "50fa57a75a45fec37fff22cd18555df04cbe6f08",
+      "merge_sha": "05121304e93141f8dc360077f6bcff457c3800b4",
+      "evidence_files": ["docs/super-board/runs/2026-11-07-cards-29-30-31-35/evidence.md"]
+    },
+    {
+      "number": 35,
+      "state": "merged",
+      "pr": 36,
+      "pr_url": "https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/pull/36",
+      "reviewed_head_sha": "baa9e8e43be0612aa6ecf82f4b1000bdc6e07374",
+      "merge_sha": "0b8ac83cbfc824a18e6da3060a666be1750473a1",
+      "evidence_files": ["docs/super-board/runs/2026-11-07-cards-29-30-31-35/evidence.md"]
+    }
+  ]
+}
