@@ -186,6 +186,7 @@ const LADDERS = {
 const ladder = LADDERS[input.tier || 'medium']
 const tierFor = (cls) => (cls ? ladder[cls.complexity] : undefined)
 const BUILD_MODEL = 'sonnet'
+const QA_MODEL = 'opus'
 const REVIEW_MODEL = 'opus'
 // The classify router writes no code — haiku is fine except on --high runs.
 const classifyModel = (input.tier || 'medium') === 'high' ? 'sonnet' : 'haiku'
@@ -318,7 +319,7 @@ const results = await pipeline(
   async (prev, card) => {
     const history = []
     if (halted) return { number: card.number, history: [{ lane: 'none', status: 'halted', column: card.status, detail: 'run halted; preserve current work and resume explicitly' }] }
-    // Owner's fixed split (2026-11-06): Sonnet builds and tests, Opus reviews. The
+    // Owner's fixed split (2026-11-07): Sonnet builds, Opus tests and reviews. The
     // complexity ladder (tierFor) no longer picks the model.
     const model = BUILD_MODEL
     let at = card.status
@@ -336,7 +337,7 @@ const results = await pipeline(
     // (run.md "Lanes and label routing").
     if (at === 'Ready' && readyLane(card) === 'qa') at = 'QA'
     if (at === 'QA') {
-      const q = await runLane('qa', card, model, history)
+      const q = await runLane('qa', card, QA_MODEL, history)
       if (q.status !== 'advanced') return { number: card.number, history }
       at = 'Review'
     }
