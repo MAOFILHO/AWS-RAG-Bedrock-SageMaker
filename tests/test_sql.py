@@ -98,6 +98,23 @@ def test_bad_sql_gets_a_rephrase_message():
     assert rag_course.ask("sql", "How many spaceships?", models=models, db=CHINOOK) == sql.FAILED
 
 
+class ObedientModel:
+    """Writes the Invoice.Country query that fails, unless the prompt tells it to use the schema's names."""
+
+    def answer(self, prompt: str) -> str:
+        if not prompt.rstrip().endswith("SQLQuery:"):
+            return "Rows: " + prompt.split("SQL result rows: ", 1)[1].split("\n", 1)[0]
+        column = "BillingCountry" if "BillingCountry, not Country" in prompt else "Country"
+        return f"SELECT {column}, SUM(Total) AS TotalSales FROM Invoice GROUP BY {column} ORDER BY TotalSales DESC LIMIT 1"
+
+
+def test_total_sales_question_is_answered_not_refused():
+    models = core.Models(answer=ObedientModel(), embed=None)
+    answer = rag_course.ask("sql", "Which country has the highest total sales?", models=models, db=CHINOOK)
+    assert "USA" in answer
+    assert answer != sql.FAILED
+
+
 def test_missing_database_is_an_error(tmp_path):
     with pytest.raises(FileNotFoundError):
         rag_course.ask("sql", "q", models=fake_sql_models({}), db=tmp_path / "nope.db")
