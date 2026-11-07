@@ -10,3 +10,8 @@
 | #11 | review:halted | halted | Review | Wave 4: QA advanced, Review halted by a false GitHub halt (gh pr checks exits 1, PR has 0 CI checks). Cleared with --resume. |
 | #11 | merged | done | Done | PR #20 merged to staging 387ff1a after human done approval. Issue closed, card moved to Done. |
 | #7 | merged | done | Done | PR #21 merged to staging 1530f65 after human done approval (drop table false positive). Issue closed, card moved to Done. |
+| #25 | build:advanced → qa:advanced → review:bounced | bounced | Ready | Review clean (111 passed, no findings). Merge gate exit 5: conflict in tests/test_cli.py with staging 85f870c (--version tests). Labelled loop:rebase, back to Build for a rebase pass. PR #27. |
+| #25 | merged | done | Done | Rebase pass. PR #27 merged to staging 1578f72 through the gate (exit 0). 114 passed with AWS cut off. Truth check 95. No human step. |
+| #26 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #28 merged to staging 246e0c7 through the gate, pinned to head d1f275a. 119 passed with AWS cleared. Truth check 92. No findings, no human step. |
+| #26 | preflight:blocked | blocked | Blocked | Same file (src/rag_course/cli.py) as #25. Sequenced behind #25 with blocked-by: 25. Sweep returns it to Ready when #25 closes. |
+| #23 | build:advanced → qa:advanced → review:advanced | merged | Done | Unattended test wave. PR #24 merged to staging 85f870c through the merge gate, pinned to head 84a0beb. 114 passed with AWS removed. Truth check 93/100. No human step. |
