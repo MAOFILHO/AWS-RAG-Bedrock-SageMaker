@@ -13,5 +13,8 @@
 | #25 | build:advanced → qa:advanced → review:bounced | bounced | Ready | Review clean (111 passed, no findings). Merge gate exit 5: conflict in tests/test_cli.py with staging 85f870c (--version tests). Labelled loop:rebase, back to Build for a rebase pass. PR #27. |
 | #25 | merged | done | Done | Rebase pass. PR #27 merged to staging 1578f72 through the gate (exit 0). 114 passed with AWS cut off. Truth check 95. No human step. |
 | #26 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #28 merged to staging 246e0c7 through the gate, pinned to head d1f275a. 119 passed with AWS cleared. Truth check 92. No findings, no human step. |
+| #29 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #33 merged to staging 4b5319b through the gate, pinned to head 69f1a0a. 123 passed with AWS cleared. Truth check 90. Open nits: no test asserts wait values; core.py:102 AttributeError if response is None. |
+| #30 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #32 merged to staging e6f59af through the gate. 123 passed. Truth check 95. |
+| #31 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #34 merged to staging 0512130 through the gate, pinned to head 50fa57a. 120 passed offline. Live total-sales golden passed. Open nit: stub test depends on exact prompt wording. |
 | #26 | preflight:blocked | blocked | Blocked | Same file (src/rag_course/cli.py) as #25. Sequenced behind #25 with blocked-by: 25. Sweep returns it to Ready when #25 closes. |
 | #23 | build:advanced → qa:advanced → review:advanced | merged | Done | Unattended test wave. PR #24 merged to staging 85f870c through the merge gate, pinned to head 84a0beb. 114 passed with AWS removed. Truth check 93/100. No human step. |
