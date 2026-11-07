@@ -73,3 +73,53 @@ def test_help_lists_version():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "--version" in result.output
+
+
+def test_ask_pdf_missing_path_errors_before_any_model_call(monkeypatch, tmp_path):
+    calls = []
+    _stub_ask(monkeypatch, calls)
+    missing = tmp_path / "nope.pdf"
+    result = runner.invoke(app, ["ask", "hi", "--source", "pdf", "--pdf", str(missing)])
+    assert result.exit_code == 2
+    assert f"Error: PDF not found: {missing}" in result.stderr
+    assert calls == []
+
+
+def test_ask_pdf_directory_path_gets_same_error(monkeypatch, tmp_path):
+    calls = []
+    _stub_ask(monkeypatch, calls)
+    result = runner.invoke(app, ["ask", "hi", "--source", "pdf", "--pdf", str(tmp_path)])
+    assert result.exit_code == 2
+    assert f"Error: PDF not found: {tmp_path}" in result.stderr
+    assert calls == []
+
+
+def test_ask_pdf_default_path_checked_when_absent(monkeypatch, tmp_path):
+    calls = []
+    _stub_ask(monkeypatch, calls)
+    absent = tmp_path / "k21.pdf"
+    monkeypatch.setattr("rag_course.pdf.DEFAULT_PDF", absent)
+    result = runner.invoke(app, ["ask", "hi", "--source", "pdf"])
+    assert result.exit_code == 2
+    assert f"Error: PDF not found: {absent}" in result.stderr
+    assert calls == []
+
+
+def test_ask_pdf_existing_file_reaches_ask(monkeypatch, tmp_path):
+    calls = []
+    _stub_ask(monkeypatch, calls)
+    present = tmp_path / "ok.pdf"
+    present.write_bytes(b"%PDF-1.4")
+    result = runner.invoke(app, ["ask", "hi", "--source", "pdf", "--pdf", str(present)])
+    assert result.exit_code == 0
+    assert len(calls) == 1
+
+
+def test_ask_web_and_sql_ignore_missing_pdf(monkeypatch, tmp_path):
+    calls = []
+    _stub_ask(monkeypatch, calls)
+    missing = tmp_path / "nope.pdf"
+    for source in ("web", "sql"):
+        result = runner.invoke(app, ["ask", "hi", "--source", source, "--pdf", str(missing)])
+        assert result.exit_code == 0
+    assert len(calls) == 2
