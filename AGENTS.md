@@ -28,6 +28,25 @@ Board: Backlog · Ready · Building · QA · Review · Blocked · Done. Labels r
 | Blocked card | block-template comment · last line `blocked-by:` · 🙋 = needs you |
 | Secrets | NEVER read `.env`; key names via `.claude/bin/super-board-env-check.sh` |
 
+## Autonomy policy (super-board run)
+
+The supervisor decides. It takes its own recommended option for every reversible choice and reports "Decision taken: X", not a question.
+
+| Situation | Action |
+|---|---|
+| Card fails QA or Review | Back to Build with the findings. Rebuild up to 3 rounds. |
+| Ticket AC unclear or wrong | Supervisor rewrites the AC by the stated intent, notes it on the card, re-runs. |
+| Review passes, tests green | Ready, then merge gate, then Done. No question. |
+| Permission block or false halt | Test the command bare, fix the lane skill or config, re-run. |
+| Run ends with all cards merged | Calibration runs, then the lane skills improve. |
+
+Stop and ask a human only for these hard gates:
+1. Money, auth, destructive schema code, or a live database.
+2. A push or merge to `main`.
+3. A change to settings files, permission rules, or the merge policy.
+4. The human `done` on a gate request. NEVER write it.
+5. A secret, a cost over the cap, or a rebuild cap hit.
+
 ## Writing (super-board)
 
 | Thing | Format → `.claude/skills/super-board/references/writing-standard.md` |
