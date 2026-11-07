@@ -33,6 +33,18 @@ Reads `Ready` from the repo's feature project. Resolution order:
 
 Surface: `🎯 Reading project: <owner>/<title> (#<n>), column "Ready"`.
 
+## Command shape — one call per command
+
+The auto mode classifier matches allow rules against the whole command. A compound command
+(`|`, `;`, `&&`, a heredoc, or a shell variable set on the same line) falls outside a rule such
+as `Bash(gh pr ready:*)` and is judged on intent, often denied. Measured 2026-11-07: a bare
+`bash .claude/bin/super-board-merge-gate.sh ...` ran; the same call with `| tail` and `; echo` was denied.
+
+- Run each `gh`, `git` and gate call as its own Bash call, starting with the command name.
+- Write message and body files first with the Write tool, then pass the path with `--body-file`.
+- Never pipe a `gh` write or the gate. Read the full output, or redirect it to a file in the scratchpad in a separate call.
+- Never put `gh pr ready`, `gh pr edit`, `gh pr comment`, `gh api` writes or the gate in a multi-line script.
+
 ## Algorithm
 
 ### 0. Pre-flight
