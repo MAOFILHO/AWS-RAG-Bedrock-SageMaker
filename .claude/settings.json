@@ -54,5 +54,32 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh project:*)",
+      "Bash(gh api:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git worktree:*)",
+      "Bash(bash .claude/bin/super-board-merge-gate.sh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(mkdir:*)",
+      "Bash(pgrep:*)",
+      "Bash(bash .claude/bin/super-board-:*)",
+      "Bash(python3 .claude/bin/super-board-:*)",
+      "Bash(.claude/bin/super-board-card.sh:*)",
+      "Bash(node --check:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(rm -f .claude/super-board/inflight/workflow-wave.lock)"
+    ]
   }
 }

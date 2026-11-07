@@ -45,6 +45,8 @@ const READ_SHAPES = [
   `Read shapes (helper: .claude/bin/super-board-github-read.py --kind <kind> -- <gh args>):`,
   `- issue title+body: --kind issue -- issue view <N> --json number,title,body`,
   `- issue comments: --kind comments -- api repos/{owner}/{repo}/issues/<N>/comments --paginate --slurp (zero comments = [[]])`,
+  `- Find a PR by branch: --kind json -- pr list --state open --json number,headRefName,headRefOid (gh has no --head-prefix; filter headRefName yourself)`,
+  `- PR inline review comments: --kind json -- api repos/{owner}/{repo}/pulls/<N>/comments --paginate --slurp (never add --jq: gh rejects --slurp with --jq)`,
   `- other JSON, incl. maybe-empty lists: --kind json -- <gh args> (no --jq that prints a plain string)`,
   `- PR branch+head: --kind head -- pr view <N> --json headRefName,headRefOid --jq '"\\(.headRefName) \\(.headRefOid)"'`,
   `- PR body+head: --kind body -- pr view <N> --json body,headRefOid`,
@@ -124,6 +126,9 @@ const REVIEW_MEMORY = [
   // Merge policy + migrations live in the gate (run.md → Merge protocol step 5).
   `Merge only via super-board-merge-gate.sh. Exit 7 = merge_policy says a human merges (money/auth/schema/size): Blocked with the 🙋 template quoting its human-gate lines; To unblock = merge it yourself, or comment done to approve.`,
   `Exit 8 = 🙋 needs you (migration for a DB the robot may not touch, failed migrate, declared human step): Blocked with the 🙋 template, exact commands from its needs-you lines, label needs-you.`,
+  // Owner's bar (2026-11-06): Opus reviews Sonnet's code, strictly. Does not touch the over-engineering rule above.
+  `Review strictly. Any AC without a test or a run that proves it is a Verification miss: bounce. Run the verify commands yourself on the PR head; never trust the builder's pass count.`,
+  `Any open [blocker] thread, any failing check, or a head SHA that differs from the one you reviewed: bounce. Doubt about correctness is a finding, not a pass. Approve only with file:line proof for every AC.`,
 ]
 
 // GitHub budget (rate-limit-etiquette.md → "Price list"). Measured 2026-10-04: a
@@ -180,6 +185,9 @@ const LADDERS = {
 }
 const ladder = LADDERS[input.tier || 'medium']
 const tierFor = (cls) => (cls ? ladder[cls.complexity] : undefined)
+const BUILD_MODEL = 'sonnet'
+const QA_MODEL = 'opus'
+const REVIEW_MODEL = 'opus'
 // The classify router writes no code — haiku is fine except on --high runs.
 const classifyModel = (input.tier || 'medium') === 'high' ? 'sonnet' : 'haiku'
 
@@ -311,7 +319,9 @@ const results = await pipeline(
   async (prev, card) => {
     const history = []
     if (halted) return { number: card.number, history: [{ lane: 'none', status: 'halted', column: card.status, detail: 'run halted; preserve current work and resume explicitly' }] }
-    const model = tierFor(prev && prev.cls)
+    // Owner's fixed split (2026-11-07): Sonnet builds, Opus tests and reviews. The
+    // complexity ladder (tierFor) no longer picks the model.
+    const model = BUILD_MODEL
     let at = card.status
 
     if (at === 'Ready' && readyLane(card) === 'build') {
@@ -327,14 +337,15 @@ const results = await pipeline(
     // (run.md "Lanes and label routing").
     if (at === 'Ready' && readyLane(card) === 'qa') at = 'QA'
     if (at === 'QA') {
-      const q = await runLane('qa', card, model, history)
+      const q = await runLane('qa', card, QA_MODEL, history)
       if (q.status !== 'advanced') return { number: card.number, history }
       at = 'Review'
     }
     if (at === 'Review') {
-      // Reviewer always on session model. No lane-level serialisation: the merge
-      // gate holds the mutex for the merge alone (see the note above).
-      await runLane('review', card, undefined, history)
+      // Reviewer on Opus (code review, PR review, then the merge gate in the same
+      // lane). No lane-level serialisation: the merge gate holds the mutex for the
+      // merge alone (see the note above).
+      await runLane('review', card, REVIEW_MODEL, history)
     }
     return { number: card.number, history }
   }
