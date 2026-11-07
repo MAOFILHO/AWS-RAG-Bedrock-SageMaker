@@ -340,6 +340,19 @@ See `.claude/skills/super-board/references/run.md` → Reviewer. Summary of the 
 8. Write the Reviewer report (marker `<!-- super-review:report -->`, ids on every finding) — edit the existing report comment in place, post a new one only on the first review. It is the next re-review's `prior_report`.
 9. Clean up worktree.
 
+## Command shape — one call per command
+
+The auto mode classifier matches allow rules against the whole command. A compound command
+(`|`, `;`, `&&`, a heredoc, or a shell variable set on the same line) falls outside a rule such
+as `Bash(gh pr ready:*)` and is judged on intent, often denied. Measured 2026-11-07: a bare
+`bash .claude/bin/super-board-merge-gate.sh ...` ran; the same call with `| tail` and `; echo` was denied.
+
+- Run each `gh`, `git` and gate call as its own Bash call, starting with the command name.
+- Write message and body files first with the Write tool, then pass the path with `--body-file`.
+- Never pipe a `gh` write or the gate. Read the full output, or redirect it to a file in the scratchpad in a separate call.
+- Never put `gh pr ready`, `gh pr edit`, `gh pr comment`, `gh api` writes or the gate in a multi-line script.
+- Read CI with `gh pr view <PR> --json statusCheckRollup`. An empty list means the repo has no CI: record "no checks configured" and carry on. `gh pr checks` exits 1 on a repo with no checks, and the GitHub read helper counts that as a halt (exit 79).
+
 ### Merge protocol — Done means merged
 
 Builder opens PRs as **drafts**, and GitHub never auto-merges a draft. Skipping the
