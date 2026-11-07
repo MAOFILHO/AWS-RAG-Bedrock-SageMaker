@@ -1,0 +1,46 @@
+[
+  {
+    "question": "What is cloud computing?",
+    "source": "https://www.ibm.com/think/topics/cloud-computing",
+    "expect": [
+      "on-demand"
+    ]
+  },
+  {
+    "question": "What are the benefits of cloud computing?",
+    "source": "https://www.ibm.com/think/topics/cloud-computing",
+    "expect": [
+      "scalab"
+    ]
+  },
+  {
+    "question": "What is the difference between IaaS, PaaS and SaaS?",
+    "source": "https://www.ibm.com/think/topics/cloud-computing",
+    "expect": [
+      "IaaS",
+      "PaaS",
+      "SaaS"
+    ]
+  },
+  {
+    "question": "What is data science?",
+    "source": "https://www.ibm.com/think/topics/data-science",
+    "expect": [
+      "statistic"
+    ]
+  },
+  {
+    "question": "What skills does a data scientist need?",
+    "source": "https://www.ibm.com/think/topics/data-science",
+    "expect": [
+      "skill"
+    ]
+  },
+  {
+    "question": "How is data science used in business?",
+    "source": "https://www.ibm.com/think/topics/data-science",
+    "expect": [
+      "business"
+    ]
+  }
+]

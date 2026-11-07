@@ -1,0 +1,12 @@
+== none
+ANSWER_OK True CLIENTS 0
+   secret hits in output: 0
+== flag
+ANSWER_OK True CLIENTS 0
+   secret hits in output: 0
+== flag2
+ANSWER_OK True CLIENTS 0
+   secret hits in output: 0
+== key
+ANSWER_OK True CLIENTS 1
+   secret hits in output: 0

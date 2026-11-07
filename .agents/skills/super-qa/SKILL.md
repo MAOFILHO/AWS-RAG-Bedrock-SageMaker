@@ -70,6 +70,19 @@ When the worker finds a red spec, it calls `scripts/super-qa-file-bug.sh`. The s
 
 A `Flaky` retry-only finding goes to `Flaky`; out-of-scope routes go to `Skip`. The same issue may also live on a repo-level project for normal triage — Status on the QA project is the loop state; status elsewhere is independent.
 
+## Command shape — one call per command
+
+The auto mode classifier matches allow rules against the whole command. A compound command
+(`|`, `;`, `&&`, a heredoc, or a shell variable set on the same line) falls outside a rule such
+as `Bash(gh pr ready:*)` and is judged on intent, often denied. Measured 2026-11-07: a bare
+`bash .claude/bin/super-board-merge-gate.sh ...` ran; the same call with `| tail` and `; echo` was denied.
+
+- Run each `gh`, `git` and gate call as its own Bash call, starting with the command name.
+- Write message and body files first with the Write tool, then pass the path with `--body-file`.
+- Never pipe a `gh` write or the gate. Read the full output, or redirect it to a file in the scratchpad in a separate call.
+- Never put `gh pr ready`, `gh pr edit`, `gh pr comment`, `gh api` writes or the gate in a multi-line script.
+- Keep QA evidence out of the PR diff. Post raw test logs as an issue comment, or save them outside the repo. The merge gate scans added lines for `drop table` and similar words, and a verbose pytest log with such test names forces a human gate (cards #7 and #11, 2026-11-07).
+
 ## Algorithm overview
 
 You are the orchestrator. Your job: drive a BFS crawl of the target app

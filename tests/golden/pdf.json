@@ -1,0 +1,44 @@
+[
+  {
+    "question": "What partnerships and alliances does Amazon Q have?",
+    "page": 1,
+    "expect": [
+      "Key Partnerships and Alliances"
+    ]
+  },
+  {
+    "question": "How does Amazon Q generate revenue?",
+    "page": 1,
+    "expect": [
+      "Revenue Streams"
+    ]
+  },
+  {
+    "question": "What SDKs and APIs are available for developers?",
+    "page": 2,
+    "expect": [
+      "SDKs and APIs"
+    ]
+  },
+  {
+    "question": "What security and compliance guidance is given?",
+    "page": 2,
+    "expect": [
+      "Security and Compliance"
+    ]
+  },
+  {
+    "question": "What innovations are in the pipeline?",
+    "page": 3,
+    "expect": [
+      "Innovations in the Pipeline"
+    ]
+  },
+  {
+    "question": "Is there a glossary of terms?",
+    "page": 3,
+    "expect": [
+      "Glossary of Terms"
+    ]
+  }
+]
