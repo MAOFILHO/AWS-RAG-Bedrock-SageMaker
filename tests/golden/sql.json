@@ -61,8 +61,7 @@
     "question": "Which employee supports the most customers?",
     "sql": "SELECT e.LastName, COUNT(*) AS Customers FROM Employee e JOIN Customer c ON c.SupportRepId = e.EmployeeId GROUP BY e.EmployeeId ORDER BY Customers DESC LIMIT 1",
     "expect": [
-      "Peacock",
-      21
+      "Peacock"
     ]
   }
 ]

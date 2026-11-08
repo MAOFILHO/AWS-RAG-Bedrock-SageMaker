@@ -1,4 +1,5 @@
 import hashlib
+import re
 import shutil
 import sqlite3
 from pathlib import Path
@@ -96,6 +97,24 @@ def test_connection_is_read_only_even_past_the_guard(db_copy):
 def test_bad_sql_gets_a_rephrase_message():
     models = fake_sql_models({"How many spaceships?": "SELECT COUNT(*) FROM Spaceship"})
     assert rag_course.ask("sql", "How many spaceships?", models=models, db=CHINOOK) == sql.FAILED
+
+
+class ObedientModel:
+    """Writes the sales query from the Invoice columns the prompt's table info lists, not from the prompt's wording."""
+
+    def answer(self, prompt: str) -> str:
+        if not prompt.rstrip().endswith("SQLQuery:"):
+            return "Rows: " + prompt.split("SQL result rows: ", 1)[1].split("\n", 1)[0]
+        invoice = re.search(r"CREATE TABLE \W?Invoice\W.*?\n\)", prompt, re.S | re.I)
+        column = "BillingCountry" if invoice and "BillingCountry" in invoice.group(0) else "Country"
+        return f"SELECT {column}, SUM(Total) AS TotalSales FROM Invoice GROUP BY {column} ORDER BY TotalSales DESC LIMIT 1"
+
+
+def test_total_sales_question_is_answered_not_refused():
+    models = core.Models(answer=ObedientModel(), embed=None)
+    answer = rag_course.ask("sql", "Which country has the highest total sales?", models=models, db=CHINOOK)
+    assert "USA" in answer
+    assert answer != sql.FAILED
 
 
 def test_missing_database_is_an_error(tmp_path):
