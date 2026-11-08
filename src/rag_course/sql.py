@@ -69,13 +69,18 @@ def ask(question: str, models: Models, db: Path = DEFAULT_DB) -> str:
         raise FileNotFoundError(f"database not found: {db}")
     conn = connect_read_only(db)
     try:
-        raw = models.answer.answer(SQL_PROMPT.format(table_info=table_info(conn), question=question))
-        sql = guard_sql(clean_sql(raw))
-        if sql is None:
-            return REFUSAL
-        try:
-            rows = conn.execute(sql).fetchall()
-        except sqlite3.Error:
+        prompt = SQL_PROMPT.format(table_info=table_info(conn), question=question)
+        rows = None
+        for _ in range(2):
+            sql = guard_sql(clean_sql(models.answer.answer(prompt)))
+            if sql is None:
+                return REFUSAL
+            try:
+                rows = conn.execute(sql).fetchall()
+                break
+            except sqlite3.Error as error:
+                prompt += f" {sql}\nSQLError: {error}\nFix the error and write the corrected query.\nSQLQuery:"
+        if rows is None:
             return FAILED
     finally:
         conn.close()
