@@ -99,6 +99,36 @@ def test_bad_sql_gets_a_rephrase_message():
     assert rag_course.ask("sql", "How many spaceships?", models=models, db=CHINOOK) == sql.FAILED
 
 
+ALBUMS = "Which artist has the most albums?"
+WRONG_ALIAS = "SELECT a.Name, COUNT(a.AlbumId) AS N FROM Artist a JOIN Album al ON a.ArtistId = al.ArtistId GROUP BY a.Name ORDER BY N DESC LIMIT 1"
+FIXED_ALIAS = "SELECT a.Name, COUNT(al.AlbumId) AS N FROM Artist a JOIN Album al ON a.ArtistId = al.ArtistId GROUP BY a.Name ORDER BY N DESC LIMIT 1"
+
+
+class RetryModel:
+    """Writes the SQL a live run produced (a.AlbumId does not exist), then `second` once the prompt shows the error."""
+
+    def __init__(self, second: str):
+        self.second = second
+
+    def answer(self, prompt: str) -> str:
+        if not prompt.rstrip().endswith("SQLQuery:"):
+            return "Rows: " + prompt.split("SQL result rows: ", 1)[1].split("\n", 1)[0]
+        return self.second if "SQLError:" in prompt else WRONG_ALIAS
+
+
+def test_sql_that_errors_is_retried_once_with_the_error():
+    models = core.Models(answer=RetryModel(FIXED_ALIAS), embed=None)
+    answer = rag_course.ask("sql", ALBUMS, models=models, db=CHINOOK)
+    assert "Iron Maiden" in answer and "21" in answer
+
+
+def test_retried_sql_still_goes_through_the_guard(db_copy):
+    before = digest(db_copy)
+    models = core.Models(answer=RetryModel("DELETE FROM Album"), embed=None)
+    assert rag_course.ask("sql", ALBUMS, models=models, db=db_copy) == sql.REFUSAL
+    assert digest(db_copy) == before
+
+
 class ObedientModel:
     """Writes the sales query from the Invoice columns the prompt's table info lists, not from the prompt's wording."""
 

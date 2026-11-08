@@ -1,0 +1,1 @@
+Based on the provided SQL result rows, Iron Maiden has the most albums with 21.
