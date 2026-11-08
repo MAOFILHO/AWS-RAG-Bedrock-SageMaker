@@ -1,0 +1,6 @@
+$ super-board-github-read.py --kind comments -- api repos/{owner}/{repo}/issues/46/comments --paginate --slurp --jq .
+[github-read] --slurp cannot be combined with --jq; gh rejects the pair. Use the read form in .claude/skills/super-board/references/rate-limit-etiquette.md (Price list)
+exit=64 halt_file_exists=no
+$ same read without --jq
+exit=0 halt_file_exists=no
+pages 1 comments 1
