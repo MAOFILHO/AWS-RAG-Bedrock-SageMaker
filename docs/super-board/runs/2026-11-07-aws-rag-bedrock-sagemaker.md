@@ -24,5 +24,6 @@
 | #46 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #47 merged to staging 9e4b571 through the gate, pinned to head 6e729f1. 137 passed offline. Truth check 90. Open nit: the -q form has no test. |
 | #45 | build:advanced → qa:advanced → review:bounced | bounced | Ready | Review round 1: nothing calls super-board-qa-log-check.py (Gap), renamed file and non-ASCII .log name pass (Bug). 138 passed. PR #48. |
 | #45 | build:advanced → qa:advanced → review:human-gate | human-gate | Blocked | Rebuild round 1 fixed R1 and R2. 140 passed, truth check 90. Merge gate exit 7: keyword "drop table" in an added line, because super-qa/SKILL.md:84 quotes the phrase. Needs human done. PR #48. |
+| #45 | merged | done | Done | PR #48 merged to staging 08ce063 through the gate, pinned to head f29ea6f, after human done approval (keyword in quoted skill text). Issue closed, card moved to Done. |
 | #26 | preflight:blocked | blocked | Blocked | Same file (src/rag_course/cli.py) as #25. Sequenced behind #25 with blocked-by: 25. Sweep returns it to Ready when #25 closes. |
 | #23 | build:advanced → qa:advanced → review:advanced | merged | Done | Unattended test wave. PR #24 merged to staging 85f870c through the merge gate, pinned to head 84a0beb. 114 passed with AWS removed. Truth check 93/100. No human step. |
