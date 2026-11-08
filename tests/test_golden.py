@@ -54,6 +54,11 @@ def test_missing_ignores_thousands_separators(answer, expect, left):
     assert missing(answer, expect) == left
 
 
+def test_employee_golden_accepts_an_answer_that_names_only_the_employee():
+    case = next(c for c in golden("sql") if c["question"] == "Which employee supports the most customers?")
+    assert missing("Jane Peacock supports the most customers.", case["expect"]) == []
+
+
 @pytest.mark.parametrize(("name", "count"), COUNTS.items())
 def test_golden_file_holds_every_case(name, count):
     assert len(golden(name)) == count
