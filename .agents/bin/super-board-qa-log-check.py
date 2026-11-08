@@ -25,14 +25,14 @@ def main(argv=None):
     ap.add_argument("--repo", default=".")
     args = ap.parse_args(argv)
     res = subprocess.run(
-        ["git", "-C", args.repo, "diff", "--name-only", "--diff-filter=A", f"{args.base}...{args.head}"],
+        ["git", "-C", args.repo, "diff", "--name-only", "-z", "--diff-filter=AR", f"{args.base}...{args.head}"],
         capture_output=True,
         text=True,
     )
     if res.returncode != 0:
         print(res.stderr.strip(), file=sys.stderr)
         return 2
-    bad = offending(res.stdout.splitlines())
+    bad = offending(res.stdout.split("\0"))
     for path in bad:
         print(f"QA log added to the PR diff: {path}. Remove it (git rm) and post the log as an issue comment instead.")
     return 1 if bad else 0

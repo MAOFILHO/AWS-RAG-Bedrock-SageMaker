@@ -60,3 +60,23 @@ def test_nested_log_outside_runs_dir_fails(tmp_path, capsys):
 def test_diff_without_logs_passes(tmp_path):
     repo = repo_with_added(tmp_path, ["src/ok.py"])
     assert run(repo) == 0
+
+
+def test_non_ascii_log_name_fails(tmp_path, capsys):
+    repo = repo_with_added(tmp_path, ["é.log"])
+    assert run(repo) == 1
+    assert "é.log" in capsys.readouterr().out
+
+
+def test_file_renamed_to_log_fails(tmp_path, capsys):
+    git(tmp_path, "init", "-q", "-b", "base")
+    git(tmp_path, "config", "user.email", "t@example.com")
+    git(tmp_path, "config", "user.name", "t")
+    (tmp_path / "a.txt").write_text("some distinctive content for rename detection\n" * 5)
+    git(tmp_path, "add", ".")
+    git(tmp_path, "commit", "-qm", "base")
+    git(tmp_path, "checkout", "-qb", "pr")
+    git(tmp_path, "mv", "a.txt", "moved.log")
+    git(tmp_path, "commit", "-qm", "pr")
+    assert run(tmp_path) == 1
+    assert "moved.log" in capsys.readouterr().out
