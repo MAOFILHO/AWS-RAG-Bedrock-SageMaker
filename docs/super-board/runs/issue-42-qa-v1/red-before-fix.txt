@@ -1,0 +1,8 @@
+E         - I can only answer read-only questions about the database.
+E         + I couldn't answer that from the database. Please rephrase your question.
+
+tests/test_sql.py:128: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_sql.py::test_sql_that_errors_is_retried_once_with_the_error
+FAILED tests/test_sql.py::test_retried_sql_still_goes_through_the_guard - ass...
+2 failed, 31 deselected in 0.22s
