@@ -1,0 +1,12 @@
+## Mutation 1: revert None guard (old line 102)
+tests/test_bedrock.py:109: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_bedrock.py::test_an_error_with_no_response_raises_the_original_error
+1 failed, 8 passed in 0.34s
+## Mutation 2: constant wait (WAIT_SECONDS instead of WAIT_SECONDS * attempt)
+tests/test_bedrock.py:100: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_bedrock.py::test_the_wait_grows_with_each_failed_try - asse...
+1 failed, 8 passed in 0.26s
+## Restored
+9 passed in 0.22s
