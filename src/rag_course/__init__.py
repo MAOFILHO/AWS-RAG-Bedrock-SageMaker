@@ -7,7 +7,7 @@ from langsmith import traceable
 
 from rag_course import pdf as pdf_pipeline
 from rag_course import sql, web
-from rag_course.core import PDF_PROMPT, WEB_PROMPT, Models, Settings, VectorStore, answer_with_context, bedrock_models, tracing
+from rag_course.core import Models, Settings, bedrock_models, tracing
 
 
 def ask(
@@ -46,29 +46,32 @@ def _ask(
     raise ValueError(f"unknown source: {source}")
 
 
-def open_source(
-    source: str,
-    *,
-    models: Models | None = None,
-    fetch: Callable[[str], str] | None = None,
-    pdf: Path | None = None,
-    db: Path | None = None,
-) -> Callable[[str], str]:
+def open_source(source: str, *, pdf: Path | None = None, db: Path | None = None) -> Callable[[str], str]:
     """Load a Source once and return a function that answers questions with the same Pipeline as `ask`."""
     settings = Settings.from_env()
-    models = models or bedrock_models(settings)
+    models = bedrock_models(settings)
     if source == "web":
-        chunks, prompt = web.chunks(fetch or web.fetch_page), WEB_PROMPT
+        store = web.store(models, web.fetch_page)
+        answer = lambda question: web.answer(question, store, models)  # noqa: E731
     elif source == "pdf":
-        chunks, prompt = pdf_pipeline.chunks(pdf or pdf_pipeline.DEFAULT_PDF), PDF_PROMPT
+        store = pdf_pipeline.store(models, pdf or pdf_pipeline.DEFAULT_PDF)
+        answer = lambda question: pdf_pipeline.answer(question, store, models)  # noqa: E731
     elif source == "sql":
-        return lambda question: _chat_answer(settings, lambda: sql.ask(question, models, db or sql.DEFAULT_DB))
+        answer = lambda question: sql.ask(question, models, db or sql.DEFAULT_DB)  # noqa: E731
     else:
         raise ValueError(f"unknown source: {source}")
-    store = VectorStore(models.embed, chunks)
-    return lambda question: _chat_answer(settings, lambda: answer_with_context(question, store, models, prompt)[0])
+    return lambda question: _chat(settings, source, question, answer)
 
 
-def _chat_answer(settings: Settings, answer: Callable[[], str]) -> str:
+def _chat(settings: Settings, source: str, question: str, answer: Callable[[str], str]) -> str:
     with tracing(settings):
-        return answer()
+        return _chat_run(source, question, answer)
+
+
+@traceable(
+    name="rag chat",
+    run_type="chain",
+    process_inputs=lambda inputs: {"source": inputs["source"], "question": inputs["question"]},
+)
+def _chat_run(source: str, question: str, answer: Callable[[str], str]) -> str:
+    return answer(question)

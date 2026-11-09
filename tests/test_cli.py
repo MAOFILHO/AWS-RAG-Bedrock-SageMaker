@@ -212,3 +212,19 @@ def test_chat_sql_answers_match_rag_ask(monkeypatch):
         "Rows: [(59,)]",
         "Rows: [(275,)]",
     ]
+
+
+def test_chat_retrieves_with_the_same_k_as_rag_ask(monkeypatch):
+    from rag_course import core, web
+
+    ks = []
+    real = core.VectorStore.search
+    monkeypatch.setattr(core.VectorStore, "search", lambda self, q, k: ks.append(k) or real(self, q, k))
+    _chat_web(monkeypatch, "What is cloud computing?\nexit\n")
+    asked = ks[:]
+    ks.clear()
+    import rag_course
+    from fakes import fake_models, saved_page
+
+    rag_course.ask("web", "What is cloud computing?", models=fake_models(), fetch=saved_page)
+    assert asked == ks == [3]
