@@ -272,6 +272,10 @@ slices (each thin end to end, under the cap, with its own ACs), which slice this
 `/to-tickets` as the way to file the rest. Then move the card to Blocked with `❓` ("too big —
 split proposed in PR #<P>", `block-template.md`). Never pad past the cap to "finish" the ticket.
 
+The merge gate also scans every added line, prose included, for the `merge_policy` keywords. When
+a skill, doc or comment line must mention one, name it ("the schema keywords") and never quote the
+literal string. A quoted keyword in docs still parks a clean PR at exit 7 for a human.
+
 ### Lifecycle (Builder, rebuild)
 Triggered when card returns to Ready/Building with `loop:rebuild-N` label.
 1. Read PR review threads on this branch's PR; filter `[builder]` prefix.

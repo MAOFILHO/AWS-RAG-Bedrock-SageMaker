@@ -312,6 +312,10 @@ def validate(text, kind, meta=None):
 def read(args, kind='json', meta=None, recovering=False):
     if not read_only(args):
         raise ValueError('retry helper accepts read-only GitHub commands only')
+    # gh rejects --slurp with --jq on every attempt: the caller's malformed read, not an outage.
+    if '--slurp' in args and any(a in ('--jq', '-q') or a.startswith('--jq=') for a in args):
+        raise ValueError('--slurp cannot be combined with --jq; gh rejects the pair. '
+                         'Use the read form in .claude/skills/super-board/references/rate-limit-etiquette.md (Price list)')
     # A diff read with no meta is the caller's malformed read, not missing evidence:
     # fail this call (exit 64), never retry or halt.
     if kind == 'diff' and not isinstance(meta, dict):
