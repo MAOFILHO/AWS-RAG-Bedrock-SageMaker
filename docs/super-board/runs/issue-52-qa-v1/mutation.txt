@@ -1,0 +1,5 @@
+Mutation check on tests/test_data_quality.py · head 96c989b · each mutant restored after its run
+M1 core.py: drop the empty-chunks SourceError guard      -> 2 failed, 7 passed (killed)
+M2 pdf.py: drop the no-text-in-PDF SourceError guard     -> 1 failed, 8 passed (killed)
+M3 pdf.py: stop catching PyPdfError                      -> 2 failed, 7 passed (killed)
+M4 cli.py: exit 0 instead of 2 on SourceError            -> 5 failed, 4 passed (killed)
