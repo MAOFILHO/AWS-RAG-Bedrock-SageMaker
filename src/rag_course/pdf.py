@@ -4,23 +4,30 @@ from pathlib import Path
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pypdf import PdfReader
+from pypdf.errors import PyPdfError
 
-from rag_course.core import PDF_PROMPT, Chunk, Models, answer_from
+from rag_course.core import PDF_PROMPT, Chunk, Models, SourceError, answer_from
 
 DEFAULT_PDF = Path(__file__).resolve().parents[2] / "data" / "k21.pdf"
 
 
 def load_pdf(path: Path) -> list[str]:
-    return [page.extract_text() for page in PdfReader(path).pages]
+    try:
+        return [page.extract_text() for page in PdfReader(path).pages]
+    except PyPdfError as error:
+        raise SourceError(f"not a readable PDF: {path} ({error})") from error
 
 
 def chunks(path: Path = DEFAULT_PDF) -> list[Chunk]:
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    return [
+    found = [
         Chunk(text, f"{path}#page={number}")
         for number, page in enumerate(load_pdf(path), 1)
         for text in splitter.split_text(page)
     ]
+    if not found:
+        raise SourceError(f"no text found in PDF: {path}")
+    return found
 
 
 def ask(question: str, models: Models, path: Path = DEFAULT_PDF) -> str:
