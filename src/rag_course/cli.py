@@ -10,6 +10,7 @@ from rag_course import pdf as pdf_pipeline
 from rag_course import evaluate as evaluation
 from rag_course import report
 from rag_course import sql
+from rag_course.core import SourceError
 
 app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
 
@@ -51,7 +52,12 @@ def ask(
         if not path.is_file():
             typer.echo(f"Error: PDF not found: {path}", err=True)
             raise typer.Exit(code=2)
-    typer.echo(rag_course.ask(source.value, question, pdf=pdf, db=db))
+    try:
+        answer = rag_course.ask(source.value, question, pdf=pdf, db=db)
+    except SourceError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=2)
+    typer.echo(answer)
 
 
 @app.command("eval")
