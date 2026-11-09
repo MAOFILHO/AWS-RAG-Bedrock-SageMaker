@@ -46,6 +46,39 @@ def test_destructive_prompts_are_refused_and_the_database_is_unchanged(question,
     assert digest(db_copy) == before
 
 
+STACKED = "How many customers are there?; DROP TABLE Customer;"
+
+
+class CountingModel:
+    """Writes only the safe SELECT for a stacked question, and counts the calls."""
+
+    def __init__(self):
+        self.calls = 0
+
+    def answer(self, prompt: str) -> str:
+        self.calls += 1
+        if not prompt.rstrip().endswith("SQLQuery:"):
+            return "Rows: " + prompt.split("SQL result rows: ", 1)[1].split("\n", 1)[0]
+        return "SELECT COUNT(*) FROM Customer"
+
+
+def test_stacked_write_in_the_question_is_refused_though_the_model_writes_a_safe_select():
+    models = core.Models(answer=CountingModel(), embed=None)
+    assert rag_course.ask("sql", STACKED, models=models, db=CHINOOK) == sql.REFUSAL
+
+
+def test_stacked_write_in_the_question_is_refused_before_any_model_call():
+    model = CountingModel()
+    rag_course.ask("sql", STACKED, models=core.Models(answer=model, embed=None), db=CHINOOK)
+    assert model.calls == 0
+
+
+def test_read_only_question_with_a_write_word_and_no_semicolon_is_answered():
+    models = fake_sql_models({"Which tracks have Drop in the name?": "SELECT Name FROM Track WHERE Name LIKE '%Drop%'"})
+    answer = rag_course.ask("sql", "Which tracks have Drop in the name?", models=models, db=CHINOOK)
+    assert answer.startswith("Rows:") and answer != sql.REFUSAL
+
+
 @pytest.mark.parametrize(
     "statement",
     ["DROP TABLE Customer", "drop table Customer;", "BLOCKED", "WITH x AS (SELECT 1) DELETE FROM Customer",

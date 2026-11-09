@@ -14,7 +14,7 @@ FAILED = "I couldn't answer that from the database. Please rephrase your questio
 SQL_PROMPT = """You are a SQLite expert who writes READ-ONLY queries.
 Rules:
 - Write exactly ONE SELECT statement. Never write INSERT, UPDATE, DELETE, DROP, ALTER or CREATE.
-- If the request asks to change, add or delete data, output exactly: BLOCKED
+- If any part of the request asks to change, add or delete data, output exactly: BLOCKED
 - Return ONLY the raw SQL query with NO markdown, NO backticks, NO explanation.
 - Do NOT write SELECT * — only select relevant columns.
 - Use ONLY table and column names that appear in the table info, spelled exactly. Invoice has BillingCountry, not Country; Customer has Country.
@@ -55,6 +55,11 @@ def guard_sql(sql: str) -> str | None:
     return statement
 
 
+def question_asks_for_write(question: str) -> bool:
+    """True when the question holds a `;` followed by a write keyword, whatever SQL the model writes."""
+    return bool(WRITE_SQL.search(question.partition(";")[2]))
+
+
 def connect_read_only(db: Path) -> sqlite3.Connection:
     return sqlite3.connect(f"file:{Path(db).resolve()}?mode=ro", uri=True)
 
@@ -67,6 +72,8 @@ def table_info(conn: sqlite3.Connection) -> str:
 def ask(question: str, models: Models, db: Path = DEFAULT_DB) -> str:
     if not Path(db).is_file():
         raise FileNotFoundError(f"database not found: {db}")
+    if question_asks_for_write(question):
+        return REFUSAL
     conn = connect_read_only(db)
     try:
         prompt = SQL_PROMPT.format(table_info=table_info(conn), question=question)
