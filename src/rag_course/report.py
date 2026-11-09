@@ -18,6 +18,34 @@ class Reports:
     baseline: Path
     baseline_written: bool
     regressions: list[str]
+    score_drops: list["ScoreDrop"]
+
+
+# Scores where lower is worse, and how far one may fall below the baseline before it is flagged.
+COMPARED_SCORES = (
+    ("hit@3", "hit_at_3"),
+    ("MRR", "mrr"),
+    ("faithfulness", "faithfulness"),
+    ("relevance", "relevance"),
+    ("safety", "safety"),
+    ("overall", "overall"),
+)
+MAX_DROP = 0.05
+
+
+@dataclass(frozen=True)
+class ScoreDrop:
+    name: str
+    before: float
+    now: float
+
+    @property
+    def change(self) -> float:
+        return round(self.now - self.before, 4)
+
+    @property
+    def regressed(self) -> bool:
+        return -self.change > MAX_DROP
 
 
 def _key(case) -> str:
@@ -35,10 +63,15 @@ def write_reports(
     stamp = now().strftime("%Y%m%d_%H%M%S")
     baseline = out / f"baseline_{mode}.json"
 
-    regressions = []
+    regressions, score_drops = [], []
     if baseline.is_file():
-        before = json.loads(baseline.read_text())["cases"]
-        regressions = [_key(c) for c in scores.cases if before.get(_key(c)) and not c.passed]
+        saved = json.loads(baseline.read_text())
+        regressions = [_key(c) for c in scores.cases if saved["cases"].get(_key(c)) and not c.passed]
+        score_drops = [
+            ScoreDrop(name, saved["scores"][field], getattr(scores, field))
+            for name, field in COMPARED_SCORES
+            if field in saved.get("scores", {})
+        ]
 
     csv_path, html_path = out / f"eval_{mode}_{stamp}.csv", out / f"eval_{mode}_{stamp}.html"
     with csv_path.open("w", newline="") as handle:
@@ -50,8 +83,17 @@ def write_reports(
 
     write_baseline = update_baseline or not baseline.is_file()
     if write_baseline:
-        baseline.write_text(json.dumps({"mode": mode, "timestamp": stamp, "cases": {_key(c): c.passed for c in scores.cases}}, indent=2))
-    return Reports(csv_path, html_path, baseline, write_baseline, regressions)
+        baseline.write_text(json.dumps(
+                {
+                    "mode": mode,
+                    "timestamp": stamp,
+                    "scores": {field: getattr(scores, field) for _, field in COMPARED_SCORES},
+                    "cases": {_key(c): c.passed for c in scores.cases},
+                },
+                indent=2,
+            )
+        )
+    return Reports(csv_path, html_path, baseline, write_baseline, regressions, score_drops)
 
 
 def _html(scores: Scores, mode: str, stamp: str, regressions: list[str]) -> str:
