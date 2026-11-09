@@ -108,6 +108,7 @@ def with_retry(call: Callable, sleep: Callable[[float], None]):
 class BedrockAnswerModel:
     def __init__(self, client, model_id: str, sleep: Callable[[float], None] = time.sleep):
         self.client, self.model_id, self.sleep = client, model_id, sleep
+        self.input_tokens = self.output_tokens = 0
 
     def answer(self, prompt: str) -> str:
         response = with_retry(
@@ -118,6 +119,9 @@ class BedrockAnswerModel:
             ),
             self.sleep,
         )
+        usage = response.get("usage", {})
+        self.input_tokens += usage.get("inputTokens", 0)
+        self.output_tokens += usage.get("outputTokens", 0)
         return response["output"]["message"]["content"][0]["text"]
 
 
@@ -173,9 +177,15 @@ def format_docs(chunks: list[Chunk]) -> str:
     return "\n\n".join(c.text for c in chunks)
 
 
+def answer_with_context(
+    question: str, store: VectorStore, models: Models, prompt: str, k: int = 3
+) -> tuple[str, str]:
+    """Return the answer and the context it was given."""
+    context = format_docs([chunk for chunk, _ in store.search(question, k)])
+    return models.answer.answer(prompt.format(context=context, question=question)).strip(), context
+
+
 def answer_from(
     question: str, chunks: list[Chunk], models: Models, prompt: str, k: int = 3
 ) -> str:
-    hits = VectorStore(models.embed, chunks).search(question, k)
-    context = format_docs([chunk for chunk, _ in hits])
-    return models.answer.answer(prompt.format(context=context, question=question)).strip()
+    return answer_with_context(question, VectorStore(models.embed, chunks), models, prompt, k)[0]

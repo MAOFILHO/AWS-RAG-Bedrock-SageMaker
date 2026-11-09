@@ -25,7 +25,10 @@ def fetch_page(url: str) -> str:
     return html_to_text(response.text)
 
 
-def ask(question: str, models: Models, fetch: Callable[[str], str] = fetch_page) -> str:
+def chunks(fetch: Callable[[str], str] = fetch_page) -> list[Chunk]:
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    chunks = [Chunk(text, url) for url in URLS for text in splitter.split_text(fetch(url))]
-    return answer_from(question, chunks, models, WEB_PROMPT, k=3)
+    return [Chunk(text, url) for url in URLS for text in splitter.split_text(fetch(url))]
+
+
+def ask(question: str, models: Models, fetch: Callable[[str], str] = fetch_page) -> str:
+    return answer_from(question, chunks(fetch), models, WEB_PROMPT, k=3)
