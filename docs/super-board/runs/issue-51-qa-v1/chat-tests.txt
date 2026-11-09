@@ -1,0 +1,8 @@
+PASSED tests/test_cli.py::test_chat_answers_three_questions_in_order_then_exits
+PASSED tests/test_cli.py::test_chat_empty_line_gets_hint_and_no_bedrock_call
+PASSED tests/test_cli.py::test_chat_end_of_input_exits_zero
+PASSED tests/test_cli.py::test_chat_loads_the_source_once_per_session
+PASSED tests/test_cli.py::test_chat_pdf_missing_path_errors_before_loading
+PASSED tests/test_cli.py::test_chat_pdf_answers_match_rag_ask
+PASSED tests/test_cli.py::test_chat_sql_answers_match_rag_ask
+7 passed, 12 deselected in 0.22s

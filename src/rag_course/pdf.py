@@ -6,7 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pypdf import PdfReader
 from pypdf.errors import PyPdfError
 
-from rag_course.core import PDF_PROMPT, Chunk, Models, SourceError, answer_from
+from rag_course.core import PDF_PROMPT, Chunk, Models, SourceError, VectorStore, answer_with_context
 
 DEFAULT_PDF = Path(__file__).resolve().parents[2] / "data" / "invoice.pdf"
 
@@ -30,5 +30,13 @@ def chunks(path: Path = DEFAULT_PDF) -> list[Chunk]:
     return found
 
 
+def store(models: Models, path: Path = DEFAULT_PDF) -> VectorStore:
+    return VectorStore(models.embed, chunks(path))
+
+
+def answer(question: str, source: VectorStore, models: Models) -> str:
+    return answer_with_context(question, source, models, PDF_PROMPT, k=3)[0]
+
+
 def ask(question: str, models: Models, path: Path = DEFAULT_PDF) -> str:
-    return answer_from(question, chunks(path), models, PDF_PROMPT, k=3)
+    return answer(question, store(models, path), models)
