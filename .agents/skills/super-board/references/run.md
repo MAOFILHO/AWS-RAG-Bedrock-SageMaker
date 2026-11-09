@@ -315,7 +315,7 @@ column), never built unchecked. `qa` cards are not pre-flighted: nothing is buil
    (`merge_policy.auto_max_lines`, default 400 changed lines). Growing past it mid-build → stop,
    push what you have, propose the split (vertical slices via `/to-tickets`) in a PR comment and
    move the card to Blocked `❓` — never push on past the cap (super-build → "Keep each PR small").
-5. Commit + push (always). Commits follow writing-standard.md § 1 (`✨ [feat] chat: stream replies` + short bullets).
+5. Commit. Before the push, run `.claude/bin/super-board-qa-log-check.py --base origin/<base>`; on exit 1, `git rm` each named file and commit. Push (always). Commits follow writing-standard.md § 1 (`✨ [feat] chat: stream replies` + short bullets).
 6. Open draft PR linked to the issue with the PR description template (title in commit-subject format, every block filled).
 7. Follow [PR author notes](pr-author-notes.md), then post the `[builder] [report]` PR comment (see "Commenting cadence").
 8. Post a short status comment on the issue with the PR URL.
@@ -346,7 +346,7 @@ Record uncovered/stale optional coverage alongside ordinary issue AC checks.
 4b. **Test-gap check** (super-qa → "Test-gap check (after build)"): map every AC to unit / component / e2e tests, hunt edge cases, write the High gaps red-first. A High gap that needs app code changed → Fail (step 7) with the gap list. Medium/Low go in the handoff under `Test gaps (not written)`.
 4c. **Security pass** (super-qa → "Security pass (every PR)"): run `pr-security-review` on the PR's diff against its base. Each kept finding is a failing check → Fail (step 7) with a `[builder]` thread on its file:line. Skill missing → Block.
 5. Run the tests. Capture evidence to `docs/super-board/runs/issue-<N>-qa-v<N>/`. For UI/visual ACs, capture screenshots at the standard viewports (1920×1080 desktop, 1024×768 tablet, 375×667 mobile). Commit the screenshots to the issue branch BEFORE writing the comment (the markdown image URLs depend on the files being present on the branch).
-6. **Pass** → commit test files + screenshots to same branch + push → tick the `ac` block with proof lines, write `visual` for UI, append a `history` row, rewrite `status` → `[qa] [report] ✅` PR comment with results + evidence path **+ inline screenshot embeds** (see "Screenshot embed format" below) → issue comment with the SAME inline screenshot embeds → move card QA → Review. Clean up worktree.
+6. **Pass** → commit test files + screenshots to same branch. Before the push, run `.claude/bin/super-board-qa-log-check.py --base origin/<base>`; on exit 1, `git rm` each named file, commit, and post its content as an issue comment. Then push → tick the `ac` block with proof lines, write `visual` for UI, append a `history` row, rewrite `status` → `[qa] [report] ✅` PR comment with results + evidence path **+ inline screenshot embeds** (see "Screenshot embed format" below) → issue comment with the SAME inline screenshot embeds → move card QA → Review. Clean up worktree.
 7. **Fail** → leave failing ACs unchecked with the reason, append a `history` row, rewrite `status` → `[qa] [report] ❌` PR comment with per-AC expected/actual + repro file:line + evidence path + "what fixed should look like" **+ inline screenshot embeds of the broken state** → issue comment with the same inline screenshots (showing what's wrong) → increment rebuild counter → move card QA → Ready (label `loop:rebuild-N`). Clean up worktree.
 
 #### Screenshot embed format (mandatory on every QA exit — added 2026-05-22)
@@ -378,7 +378,7 @@ If a screenshot file is >5MB, downscale to ≤1920px wide before committing; Git
 3. For each unresolved `[qa]` thread: apply fix to test files, resolve thread.
 4. Re-run full test suite for the ticket.
 5. Save evidence to `runs/issue-<N>-qa-v<N+1>/`.
-6. Commit + push. Verify ALL `[qa]` threads are resolved.
+6. Commit. Before the push, run `.claude/bin/super-board-qa-log-check.py --base origin/<base>`; on exit 1, `git rm` each named file, commit, and post its content as an issue comment. Then push. Verify ALL `[qa]` threads are resolved.
 7. Update `ac`, `history`, `status`; post `[qa] [report]` PR + issue comments. Move QA → Review. Clean up worktree.
 
 ### Reviewer
