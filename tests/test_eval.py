@@ -225,6 +225,24 @@ def test_a_score_0_02_lower_is_not_flagged(tmp_path):
     assert not any(d.regressed for d in reports.score_drops)
 
 
+def test_a_drop_of_exactly_0_05_is_not_flagged_and_0_06_is(tmp_path):
+    scores = good_scores()
+    report.write_reports(scores, "live", tmp_path, update_baseline=True)
+    at_limit = report.write_reports(replace(scores, mrr=scores.mrr - 0.05), "live", tmp_path)
+    past_limit = report.write_reports(replace(scores, mrr=scores.mrr - 0.06), "live", tmp_path)
+    assert not any(d.regressed for d in at_limit.score_drops)
+    assert [d.name for d in past_limit.score_drops if d.regressed] == ["MRR"]
+
+
+def test_a_baseline_saved_before_scores_were_kept_still_compares_cases_without_crashing(tmp_path):
+    scores = good_scores()
+    old = {"mode": "live", "timestamp": "20261101_000000", "cases": {report._key(c): True for c in scores.cases}}
+    (tmp_path / "baseline_live.json").write_text(json.dumps(old))
+    reports = report.write_reports(scores, "live", tmp_path)
+    assert reports.score_drops == []
+    assert reports.baseline_written is False
+
+
 def test_cli_prints_each_score_against_the_baseline_and_flags_the_drop(monkeypatch, tmp_path):
     run_cli(monkeypatch, tmp_path, "--save-baseline")
     result = run_cli(monkeypatch, tmp_path, break_safety=True)
