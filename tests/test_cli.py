@@ -180,6 +180,19 @@ def test_chat_pdf_missing_path_errors_before_loading(monkeypatch, tmp_path):
     assert "Error: PDF not found" in result.stderr
 
 
+def test_chat_on_a_source_with_no_text_exits_2_like_rag_ask(monkeypatch):
+    import rag_course
+    from rag_course import web
+    from fakes import fake_models
+
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_models())
+    monkeypatch.setattr(web, "fetch_page", lambda url: "   \n")
+    result = runner.invoke(app, ["chat", "--source", "web"], input="What is cloud computing?\nWhat is data science?\n")
+    assert result.exit_code == 2, result.output
+    assert result.stderr.strip() == "Error: the source has no text to search"
+    assert result.stdout == ""
+
+
 def test_chat_pdf_answers_match_rag_ask(monkeypatch):
     import rag_course
     from fakes import fake_models
