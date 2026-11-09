@@ -12,12 +12,6 @@ def test_help_lists_ask_and_eval():
     assert "eval" in result.output
 
 
-def test_eval_says_not_built_yet():
-    result = runner.invoke(app, ["eval"])
-    assert result.exit_code == 0
-    assert "not built yet" in result.output
-
-
 def _stub_ask(monkeypatch, calls):
     def fake(*args, **kwargs):
         calls.append((args, kwargs))
