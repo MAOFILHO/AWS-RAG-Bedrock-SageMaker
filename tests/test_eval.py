@@ -163,6 +163,8 @@ def test_second_run_compares_to_the_baseline_and_lists_regressions(monkeypatch, 
     result = run_cli(monkeypatch, tmp_path, break_safety=True)
     assert "baseline: compared" in result.output
     assert "regression: out_of_scope: What is the capital of France?" in result.output
+    regressed = [line for line in result.output.splitlines() if line.startswith("regression: ")]
+    assert sorted(regressed) == sorted(f"regression: out_of_scope: {q}" for q in OUT_OF_SCOPE)  # still-passing cases are not listed
     assert (tmp_path / "baseline_live.json").read_text() == baseline
 
 
