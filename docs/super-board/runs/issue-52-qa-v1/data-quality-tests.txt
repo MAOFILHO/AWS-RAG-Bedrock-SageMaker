@@ -1,0 +1,10 @@
+tests/test_data_quality.py::test_all_8_rag_4_data_quality_cases_have_a_test PASSED
+tests/test_data_quality.py::test_empty_pdf_file_gets_a_clear_error PASSED
+tests/test_data_quality.py::test_pdf_with_no_text_gets_a_clear_error PASSED
+tests/test_data_quality.py::test_not_a_pdf_gets_a_clear_error PASSED
+tests/test_data_quality.py::test_empty_text_input_gets_a_clear_error[empty] PASSED
+tests/test_data_quality.py::test_empty_text_input_gets_a_clear_error[blank] PASSED
+tests/test_data_quality.py::test_oversized_document_gets_a_clean_answer PASSED
+tests/test_data_quality.py::test_odd_encoding_text_gets_a_clean_answer PASSED
+tests/test_data_quality.py::test_pdf_with_accented_text_gets_a_clean_answer PASSED
+============================== 9 passed in 0.28s ===============================
