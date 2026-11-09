@@ -228,3 +228,24 @@ def test_chat_retrieves_with_the_same_k_as_rag_ask(monkeypatch):
 
     rag_course.ask("web", "What is cloud computing?", models=fake_models(), fetch=saved_page)
     assert asked == ks == [3]
+
+
+def test_chat_pdf_loads_once_and_retrieves_with_the_same_k_as_rag_ask(monkeypatch):
+    import rag_course
+    from rag_course import core
+    from rag_course import pdf as pdf_pipeline
+    from fakes import fake_models
+
+    loads, ks = [], []
+    real_chunks, real_search = pdf_pipeline.chunks, core.VectorStore.search
+    monkeypatch.setattr(pdf_pipeline, "chunks", lambda *a: loads.append(1) or real_chunks(*a))
+    monkeypatch.setattr(core.VectorStore, "search", lambda self, q, k: ks.append(k) or real_search(self, q, k))
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_models())
+    result = runner.invoke(app, ["chat", "--source", "pdf"], input="What are SDKs and APIs?\nWhat is an API?\nexit\n")
+    assert result.exit_code == 0, result.output
+    assert len(result.output.strip().splitlines()) == 2
+    assert len(loads) == 1
+    chat_ks = ks[:]
+    ks.clear()
+    rag_course.ask("pdf", "What are SDKs and APIs?", models=fake_models())
+    assert chat_ks == [ks[0], ks[0]] == [3, 3]
