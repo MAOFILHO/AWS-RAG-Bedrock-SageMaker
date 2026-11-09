@@ -204,3 +204,62 @@ def test_a_judge_that_passes_the_planted_answer_fails_the_run(monkeypatch, tmp_p
 def test_unparseable_judge_does_not_count_as_catching_the_planted_answer():
     model = type("M", (), {"answer": lambda self, prompt: "no json here"})()
     assert evaluate.judge_catches_planted_answer(model) is False
+
+
+def good_scores():
+    return evaluate.run_eval(fake_models(), fetch=saved_page, db=CHINOOK)
+
+
+def test_save_baseline_then_a_score_0_10_lower_is_flagged_as_a_regression(tmp_path):
+    scores = good_scores()
+    report.write_reports(scores, "live", tmp_path, update_baseline=True)
+    reports = report.write_reports(replace(scores, overall=scores.overall - 0.10), "live", tmp_path)
+    assert [d.name for d in reports.score_drops if d.regressed] == ["overall"]
+
+
+def test_a_score_0_02_lower_is_not_flagged(tmp_path):
+    scores = good_scores()
+    report.write_reports(scores, "live", tmp_path, update_baseline=True)
+    reports = report.write_reports(replace(scores, overall=scores.overall - 0.02), "live", tmp_path)
+    assert len(reports.score_drops) == 6
+    assert not any(d.regressed for d in reports.score_drops)
+
+
+def test_a_drop_of_exactly_0_05_is_not_flagged_and_0_06_is(tmp_path):
+    scores = good_scores()
+    report.write_reports(scores, "live", tmp_path, update_baseline=True)
+    at_limit = report.write_reports(replace(scores, mrr=scores.mrr - 0.05), "live", tmp_path)
+    past_limit = report.write_reports(replace(scores, mrr=scores.mrr - 0.06), "live", tmp_path)
+    assert not any(d.regressed for d in at_limit.score_drops)
+    assert [d.name for d in past_limit.score_drops if d.regressed] == ["MRR"]
+
+
+def test_a_baseline_saved_before_scores_were_kept_still_compares_cases_without_crashing(tmp_path):
+    scores = good_scores()
+    old = {"mode": "live", "timestamp": "20261101_000000", "cases": {report._key(c): True for c in scores.cases}}
+    (tmp_path / "baseline_live.json").write_text(json.dumps(old))
+    reports = report.write_reports(scores, "live", tmp_path)
+    assert reports.score_drops == []
+    assert reports.baseline_written is False
+
+
+def test_cli_prints_each_score_against_the_baseline_and_flags_the_drop(monkeypatch, tmp_path):
+    run_cli(monkeypatch, tmp_path, "--save-baseline")
+    result = run_cli(monkeypatch, tmp_path, break_safety=True)
+    assert "score safety: baseline 1.00, now 0.62 (-0.38) REGRESSION" in result.output
+    assert "score hit@3: baseline 1.00, now 1.00 (+0.00)" in result.output
+    assert "REGRESSION" not in next(l for l in result.output.splitlines() if l.startswith("score hit@3"))
+
+
+def test_no_baseline_file_prints_one_hint_line_and_skips_the_score_compare(monkeypatch, tmp_path):
+    result = run_cli(monkeypatch, tmp_path)
+    assert result.exit_code == 0, result.output
+    assert [l for l in result.output.splitlines() if l.startswith("baseline:")] == [
+        f"baseline: written {tmp_path / 'baseline_live.json'}"
+    ]
+    assert not [l for l in result.output.splitlines() if l.startswith("score ")]
+
+
+def test_planted_wrong_answer_scores_below_0_5_with_the_fake_judge():
+    verdict = evaluate.judge(ScriptedModel(), evaluate.PLANTED_QUESTION, evaluate.PLANTED_CONTEXT, PLANTED)
+    assert float(verdict["faithful"]) < 0.5
