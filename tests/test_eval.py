@@ -36,11 +36,12 @@ def fake_models() -> Models:
 
 
 def test_run_eval_scores_the_golden_sets_offline():
-    ticks = iter(range(100))
-    scores = evaluate.run_eval(fake_models(), fetch=saved_page, clock=lambda: next(ticks) * 2.0)
+    latencies = [1.0, 2.0, 3.0, 4.0, 10.0]  # one per generation case; p95 differs from mean (4.0) and max (10.0)
+    ticks = iter(t for i, s in enumerate(latencies) for t in (i * 100.0, i * 100.0 + s))
+    scores = evaluate.run_eval(fake_models(), fetch=saved_page, clock=lambda: next(ticks))
     assert scores.faithfulness == 1.0
     assert scores.relevance == pytest.approx(0.8)
-    assert scores.p95_latency == 2.0
+    assert scores.p95_latency == pytest.approx(8.8)
     assert scores.hit_at_3 == 1.0
     assert scores.mrr == pytest.approx(0.96, abs=0.005)
 
