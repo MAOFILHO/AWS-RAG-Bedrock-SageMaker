@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 from importlib.metadata import version as package_version
 from pathlib import Path
@@ -7,6 +8,7 @@ import typer
 import rag_course
 from rag_course import pdf as pdf_pipeline
 from rag_course import evaluate as evaluation
+from rag_course import report
 from rag_course import sql
 
 app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
@@ -53,6 +55,24 @@ def ask(
 
 
 @app.command("eval")
-def eval_() -> None:
-    """Score retrieval, answers, latency and cost on the golden sets (calls real Bedrock)."""
-    typer.echo(evaluation.format_scores(evaluation.run_eval()))
+def eval_(
+    mode: str = typer.Option("live", "--mode", help="Run label used in the report and baseline file names."),
+    out: Path = typer.Option(Path("reports"), "--out", help="Folder for the reports and the baseline."),
+    update_baseline: bool = typer.Option(False, "--update-baseline", help="Replace the baseline with this run."),
+) -> None:
+    """Score the golden sets (calls real Bedrock), write CSV and HTML reports, and exit 1 when a threshold fails."""
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", mode):
+        typer.echo("Error: --mode may only hold letters, digits, - and _", err=True)
+        raise typer.Exit(code=2)
+    scores = evaluation.run_eval()
+    typer.echo(evaluation.format_scores(scores))
+    reports = report.write_reports(scores, mode, out, update_baseline)
+    typer.echo(f"reports: {reports.csv} {reports.html}")
+    typer.echo(f"baseline: {'written' if reports.baseline_written else 'compared'} {reports.baseline}")
+    for key in reports.regressions:
+        typer.echo(f"regression: {key}")
+    failed = evaluation.failures(scores)
+    for line in failed:
+        typer.echo(f"FAIL: {line}")
+    if failed:
+        raise typer.Exit(code=1)
