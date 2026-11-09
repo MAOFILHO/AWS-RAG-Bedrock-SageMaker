@@ -11,6 +11,7 @@ from rag_course import pdf as pdf_pipeline
 from rag_course import evaluate as evaluation
 from rag_course import report
 from rag_course import sql
+from rag_course.core import SourceError
 
 app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
 
@@ -48,7 +49,12 @@ def ask(
         typer.echo("Error: question must not be empty", err=True)
         raise typer.Exit(code=2)
     _check_pdf(source, pdf)
-    typer.echo(rag_course.ask(source.value, question, pdf=pdf, db=db))
+    try:
+        answer = rag_course.ask(source.value, question, pdf=pdf, db=db)
+    except SourceError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=2)
+    typer.echo(answer)
 
 
 def _check_pdf(source: Source, pdf: Path | None) -> None:
@@ -75,7 +81,11 @@ def chat(
         if not question:
             typer.echo("Type a question, or exit to stop.")
             continue
-        answer = answer or rag_course.open_source(source.value, pdf=pdf, db=db)
+        try:
+            answer = answer or rag_course.open_source(source.value, pdf=pdf, db=db)
+        except SourceError as error:
+            typer.echo(f"Error: {error}", err=True)
+            raise typer.Exit(code=2)
         typer.echo(answer(question))
 
 
@@ -83,7 +93,9 @@ def chat(
 def eval_(
     mode: str = typer.Option("live", "--mode", help="Run label used in the report and baseline file names."),
     out: Path = typer.Option(Path("reports"), "--out", help="Folder for the reports and the baseline."),
-    update_baseline: bool = typer.Option(False, "--update-baseline", help="Replace the baseline with this run."),
+    update_baseline: bool = typer.Option(
+        False, "--save-baseline", "--update-baseline", help="Save this run's scores as the baseline, replacing any."
+    ),
 ) -> None:
     """Score the golden sets (calls real Bedrock), write CSV and HTML reports, and exit 1 when a threshold fails."""
     if not re.fullmatch(r"[A-Za-z0-9_-]+", mode):
@@ -94,6 +106,9 @@ def eval_(
     reports = report.write_reports(scores, mode, out, update_baseline)
     typer.echo(f"reports: {reports.csv} {reports.html}")
     typer.echo(f"baseline: {'written' if reports.baseline_written else 'compared'} {reports.baseline}")
+    for drop in reports.score_drops:
+        flag = " REGRESSION" if drop.regressed else ""
+        typer.echo(f"score {drop.name}: baseline {drop.before:.2f}, now {drop.now:.2f} ({drop.change:+.2f}){flag}")
     for key in reports.regressions:
         typer.echo(f"regression: {key}")
     failed = evaluation.failures(scores)

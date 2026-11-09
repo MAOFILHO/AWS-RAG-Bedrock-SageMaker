@@ -1,0 +1,8 @@
+Mutation check on tests/test_eval.py · head 81102ab + QA tests · each mutant restored after its run
+M1 report.py: MAX_DROP 0.05 -> 0.5                       -> 3 failed, 21 passed (killed)
+M2 report.py: > -> >= at the drop limit                   -> 1 failed, 23 passed (killed; only the QA boundary test catches it)
+M3 report.py: baseline stops saving scores                -> 4 failed, 20 passed (killed)
+M4 report.py: old baseline without "scores" crashes       -> 1 failed, 23 passed (killed; only the QA old-baseline test catches it)
+M5 cli.py: REGRESSION flag never printed                  -> 1 failed, 23 passed (killed)
+M6 cli.py: --save-baseline flag dropped                   -> 1 failed, 23 passed (killed)
+M7 evaluate.py: planted answer swapped for the context    -> 4 failed, 20 passed (killed)
