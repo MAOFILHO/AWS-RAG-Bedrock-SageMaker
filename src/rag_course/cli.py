@@ -6,6 +6,7 @@ import typer
 
 import rag_course
 from rag_course import pdf as pdf_pipeline
+from rag_course import evaluate as evaluation
 from rag_course import sql
 
 app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
@@ -53,5 +54,5 @@ def ask(
 
 @app.command("eval")
 def eval_() -> None:
-    """Evaluate answers (not built yet)."""
-    typer.echo("rag eval: not built yet")
+    """Score retrieval, answers, latency and cost on the golden sets (calls real Bedrock)."""
+    typer.echo(evaluation.format_scores(evaluation.run_eval()))

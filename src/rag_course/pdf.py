@@ -14,11 +14,14 @@ def load_pdf(path: Path) -> list[str]:
     return [page.extract_text() for page in PdfReader(path).pages]
 
 
-def ask(question: str, models: Models, path: Path = DEFAULT_PDF) -> str:
+def chunks(path: Path = DEFAULT_PDF) -> list[Chunk]:
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    chunks = [
+    return [
         Chunk(text, f"{path}#page={number}")
         for number, page in enumerate(load_pdf(path), 1)
         for text in splitter.split_text(page)
     ]
-    return answer_from(question, chunks, models, PDF_PROMPT, k=3)
+
+
+def ask(question: str, models: Models, path: Path = DEFAULT_PDF) -> str:
+    return answer_from(question, chunks(path), models, PDF_PROMPT, k=3)
