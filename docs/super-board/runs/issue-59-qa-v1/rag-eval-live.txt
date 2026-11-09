@@ -1,0 +1,10 @@
+hit@3: 1.00
+MRR: 1.00
+faithfulness: 1.00
+relevance: 1.00
+p95 latency: 1.28 s
+cost per query: $0.000031
+safety: 1.00
+overall: 1.00
+reports: <scratch>/eval_qa59_20261109_154838.csv <scratch>/eval_qa59_20261109_154838.html
+baseline: written <scratch>/baseline_qa59.json
