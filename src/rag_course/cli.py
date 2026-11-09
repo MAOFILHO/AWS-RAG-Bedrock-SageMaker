@@ -1,4 +1,5 @@
 import re
+import sys
 from enum import Enum
 from importlib.metadata import version as package_version
 from pathlib import Path
@@ -47,17 +48,45 @@ def ask(
     if not question.strip():
         typer.echo("Error: question must not be empty", err=True)
         raise typer.Exit(code=2)
-    if source is Source.pdf:
-        path = pdf or pdf_pipeline.DEFAULT_PDF
-        if not path.is_file():
-            typer.echo(f"Error: PDF not found: {path}", err=True)
-            raise typer.Exit(code=2)
+    _check_pdf(source, pdf)
     try:
         answer = rag_course.ask(source.value, question, pdf=pdf, db=db)
     except SourceError as error:
         typer.echo(f"Error: {error}", err=True)
         raise typer.Exit(code=2)
     typer.echo(answer)
+
+
+def _check_pdf(source: Source, pdf: Path | None) -> None:
+    if source is Source.pdf:
+        path = pdf or pdf_pipeline.DEFAULT_PDF
+        if not path.is_file():
+            typer.echo(f"Error: PDF not found: {path}", err=True)
+            raise typer.Exit(code=2)
+
+
+@app.command()
+def chat(
+    source: Source = typer.Option(..., "--source", help="Which Source to chat with."),
+    pdf: Path | None = typer.Option(None, "--pdf", help="PDF to ask (default: data/k21.pdf)."),
+    db: Path = typer.Option(sql.DEFAULT_DB, "--db", help="SQLite database for --source sql."),
+) -> None:
+    """Ask many questions about one Source, loaded once. Type exit or end the input to stop."""
+    _check_pdf(source, pdf)
+    answer = None
+    for line in sys.stdin:
+        question = line.strip()
+        if question == "exit":
+            break
+        if not question:
+            typer.echo("Type a question, or exit to stop.")
+            continue
+        try:
+            answer = answer or rag_course.open_source(source.value, pdf=pdf, db=db)
+        except SourceError as error:
+            typer.echo(f"Error: {error}", err=True)
+            raise typer.Exit(code=2)
+        typer.echo(answer(question))
 
 
 @app.command("eval")

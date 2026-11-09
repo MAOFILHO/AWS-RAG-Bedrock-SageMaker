@@ -91,3 +91,26 @@ def test_ask_builds_no_client_when_the_env_flag_is_on_but_there_is_no_key(monkey
         monkeypatch.undo()
         langsmith.utils.get_env_var.cache_clear()
     assert keys == []
+
+
+def test_chat_answer_runs_inside_a_rag_chat_run_when_a_key_is_set(monkeypatch):
+    from langsmith import get_current_run_tree
+
+    from rag_course import web
+
+    seen = []
+    real = web.answer
+
+    def spy(question, store, models):
+        run = get_current_run_tree()
+        seen.append((run.name, run.inputs))
+        return real(question, store, models)
+
+    monkeypatch.setenv("LANGSMITH_API_KEY", KEY)
+    monkeypatch.setattr(langsmith, "Client", mock_client_factory([]))
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_models())
+    monkeypatch.setattr(web, "fetch_page", saved_page)
+    monkeypatch.setattr(web, "answer", spy)
+    answer = rag_course.open_source("web")("What is cloud computing?")
+    assert "cloud computing" in answer.lower()
+    assert seen == [("rag chat", {"source": "web", "question": "What is cloud computing?"})]

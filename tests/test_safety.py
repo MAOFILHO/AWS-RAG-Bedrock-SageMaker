@@ -128,14 +128,16 @@ def test_data_pdf_has_three_pages_all_with_text():
 
 def test_data_pdf_chunks_name_their_page(monkeypatch):
     seen = []
-    monkeypatch.setattr(pdf, "answer_from", lambda q, chunks, *a, **k: seen.extend(chunks) or "")
+    real = pdf.chunks
+    monkeypatch.setattr(pdf, "chunks", lambda *a: seen.extend(real(*a)) or real(*a))
     pdf.ask("What are SDKs and APIs?", fake_models())
     assert seen and all(c.source.endswith(tuple(f"#page={n}" for n in (1, 2, 3))) for c in seen)
 
 
 def test_data_every_web_chunk_carries_its_source(monkeypatch):
     seen = []
-    monkeypatch.setattr(web, "answer_from", lambda q, chunks, *a, **k: seen.extend(chunks) or "")
+    real = web.chunks
+    monkeypatch.setattr(web, "chunks", lambda *a: seen.extend(real(*a)) or real(*a))
     web.ask("What is cloud computing?", fake_models(), saved_page)
     assert seen and {c.source for c in seen} == set(web.URLS)
 

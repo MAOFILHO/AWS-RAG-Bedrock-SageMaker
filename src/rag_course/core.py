@@ -189,9 +189,13 @@ def answer_with_context(
     return models.answer.answer(prompt.format(context=context, question=question)).strip(), context
 
 
+def store_from(models: Models, chunks: list[Chunk]) -> VectorStore:
+    if not chunks:
+        raise SourceError("the source has no text to search")
+    return VectorStore(models.embed, chunks)
+
+
 def answer_from(
     question: str, chunks: list[Chunk], models: Models, prompt: str, k: int = 3
 ) -> str:
-    if not chunks:
-        raise SourceError("the source has no text to search")
-    return answer_with_context(question, VectorStore(models.embed, chunks), models, prompt, k)[0]
+    return answer_with_context(question, store_from(models, chunks), models, prompt, k)[0]
