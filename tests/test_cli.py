@@ -178,3 +178,37 @@ def test_chat_pdf_missing_path_errors_before_loading(monkeypatch, tmp_path):
     result = runner.invoke(app, ["chat", "--source", "pdf", "--pdf", str(tmp_path / "nope.pdf")])
     assert result.exit_code == 2
     assert "Error: PDF not found" in result.stderr
+
+
+def test_chat_pdf_answers_match_rag_ask(monkeypatch):
+    import rag_course
+    from fakes import fake_models
+
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_models())
+    questions = ["What are SDKs and APIs?", "Who won the FIFA World Cup in 1998?"]
+    asked = [runner.invoke(app, ["ask", "--source", "pdf", q]).output.strip() for q in questions]
+    result = runner.invoke(app, ["chat", "--source", "pdf"], input="\n".join(questions) + "\nexit\n")
+    assert result.exit_code == 0, result.output
+    assert result.output.strip().splitlines() == asked
+    assert "SDKs and APIs" in asked[0]
+
+
+def test_chat_sql_answers_match_rag_ask(monkeypatch):
+    from pathlib import Path
+
+    import rag_course
+    from fakes import fake_sql_models
+
+    sql_for = {
+        "How many customers are there?": "SELECT COUNT(*) FROM Customer",
+        "How many artists are there?": "SELECT COUNT(*) FROM Artist",
+    }
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_sql_models(sql_for))
+    db = str(Path(__file__).parents[1] / "data" / "Chinook.db")
+    result = runner.invoke(app, ["chat", "--source", "sql", "--db", db], input="\n".join(sql_for) + "\n")
+    assert result.exit_code == 0, result.output
+    assert result.output.strip().splitlines() == ["Rows: [(59,)]", "Rows: [(275,)]"]
+    assert [runner.invoke(app, ["ask", "--source", "sql", "--db", db, q]).output.strip() for q in sql_for] == [
+        "Rows: [(59,)]",
+        "Rows: [(275,)]",
+    ]
