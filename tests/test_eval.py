@@ -280,3 +280,10 @@ def test_any_one_empty_golden_set_stops_the_run_before_bedrock(monkeypatch, tmp_
     monkeypatch.setattr(evaluate, "bedrock_models", no_bedrock)
     with pytest.raises(SourceError, match=f"no golden cases found in .*{name}.json"):
         evaluate.run_eval(golden_dir=tmp_path)
+
+
+def test_malformed_golden_file_names_the_syntax_error_not_an_empty_set(tmp_path):
+    (tmp_path / "web.json").write_text("{bad")
+    with pytest.raises(SourceError, match="not valid JSON") as error:
+        evaluate.golden("web", tmp_path)
+    assert "no golden cases" not in str(error.value)

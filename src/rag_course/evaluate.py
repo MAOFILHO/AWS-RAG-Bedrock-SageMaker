@@ -89,9 +89,11 @@ GOLDEN_SETS = ("web", "pdf", "generation", "out_of_scope", "sql", "destructive_s
 def golden(name: str, golden_dir: Path = GOLDEN) -> list[dict]:
     path = golden_dir / f"{name}.json"
     try:
-        cases = json.loads(path.read_text())
-    except (FileNotFoundError, ValueError):
+        cases = json.loads(path.read_text() or "[]")
+    except FileNotFoundError:
         cases = []
+    except ValueError as error:
+        raise SourceError(f"golden file {path} is not valid JSON: {error}") from error
     if not cases:
         raise SourceError(f"no golden cases found in {path}")
     return cases

@@ -266,22 +266,25 @@ def test_chat_pdf_loads_once_and_retrieves_with_the_same_k_as_rag_ask(monkeypatc
 
 
 class _NoAwsAccess:
+    def __init__(self, error=None):
+        self.error = error
+
     def embed(self, texts):
         from botocore.exceptions import NoCredentialsError
 
-        raise NoCredentialsError()
+        raise self.error or NoCredentialsError()
 
     def answer(self, prompt):
         return self.embed([prompt])
 
 
-def _without_aws_access(monkeypatch):
+def _without_aws_access(monkeypatch, error=None):
     import rag_course
     from rag_course import evaluate, web
     from rag_course.core import Models
     from fakes import saved_page
 
-    models = Models(answer=_NoAwsAccess(), embed=_NoAwsAccess())
+    models = Models(answer=_NoAwsAccess(error), embed=_NoAwsAccess(error))
     monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: models)
     monkeypatch.setattr(evaluate, "bedrock_models", lambda settings: models)
     monkeypatch.setattr(web, "fetch_page", saved_page)
@@ -329,3 +332,19 @@ def test_eval_with_an_empty_golden_set_prints_one_line_and_exits_2(monkeypatch, 
     assert len(lines) == 1 and "no golden cases found" in lines[0]
     assert "Traceback" not in result.output
     assert isinstance(result.exception, SystemExit)
+
+
+def test_wrong_aws_profile_prints_one_plain_line_naming_the_profile(monkeypatch, tmp_path):
+    from botocore.exceptions import ProfileNotFound
+
+    monkeypatch.setenv("AWS_PROFILE", "does-not-exist")
+    _without_aws_access(monkeypatch, ProfileNotFound(profile="does-not-exist"))
+    results = [
+        runner.invoke(app, ["ask", "What is cloud computing?", "--source", "web"]),
+        runner.invoke(app, ["chat", "--source", "web"], input="What is cloud computing?\n"),
+        runner.invoke(app, ["eval", "--out", str(tmp_path)]),
+    ]
+    for result in results:
+        _assert_one_plain_line(result)
+        assert "does-not-exist" in result.stderr
+        assert "ProfileNotFound" not in result.output
