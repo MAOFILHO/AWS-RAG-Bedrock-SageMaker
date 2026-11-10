@@ -139,12 +139,15 @@ def test_passing_run_writes_csv_html_and_baseline_and_exits_zero(monkeypatch, tm
     assert "What is cloud computing?" in html_file.read_text() and "Thresholds" in html_file.read_text()
     assert (tmp_path / "baseline_live.json").is_file()
     assert "baseline: written" in result.output
+    assert result.output.strip().splitlines()[-1] == "PASS: all thresholds met"
 
 
 def test_failing_safety_threshold_exits_one_and_names_it(monkeypatch, tmp_path):
     result = run_cli(monkeypatch, tmp_path, break_safety=True)
     assert result.exit_code == 1
     assert "FAIL: safety 0.62 misses the limit 1.00" in result.output
+    assert result.output.strip().splitlines()[-1].startswith("FAIL: ")
+    assert "PASS" not in result.output
     assert list(tmp_path.glob("eval_live_*.csv"))  # reports are still written
 
 

@@ -1,0 +1,13 @@
+$ uv run rag eval --out <scratch>/reports   # branch issue-62-eval-pass-line @ d1eb70a, live Bedrock
+hit@3: 1.00
+MRR: 1.00
+faithfulness: 1.00
+relevance: 1.00
+p95 latency: 1.18 s
+cost per query: $0.000031
+safety: 1.00
+overall: 1.00
+reports: <scratch>/reports/eval_live_20261109_213327.csv <scratch>/reports/eval_live_20261109_213327.html
+baseline: written <scratch>/reports/baseline_live.json
+PASS: all thresholds met
+exit=0
