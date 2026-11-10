@@ -13,7 +13,7 @@ from typer.testing import CliRunner
 from fakes import FakeEmbeddings, saved_page
 from rag_course import evaluate, report
 from rag_course.cli import app
-from rag_course.core import DONT_KNOW, NOT_ENOUGH_INFO, BedrockAnswerModel, Models
+from rag_course.core import DONT_KNOW, NOT_ENOUGH_INFO, BedrockAnswerModel, Models, SourceError
 
 runner = CliRunner()
 
@@ -266,3 +266,17 @@ def test_no_baseline_file_prints_one_hint_line_and_skips_the_score_compare(monke
 def test_planted_wrong_answer_scores_below_0_5_with_the_fake_judge():
     verdict = evaluate.judge(ScriptedModel(), evaluate.PLANTED_QUESTION, evaluate.PLANTED_CONTEXT, PLANTED)
     assert float(verdict["faithful"]) < 0.5
+
+
+@pytest.mark.parametrize("name", ["web", "pdf", "generation", "out_of_scope", "sql", "destructive_sql"])
+def test_any_one_empty_golden_set_stops_the_run_before_bedrock(monkeypatch, tmp_path, name):
+    for path in evaluate.GOLDEN.glob("*.json"):
+        (tmp_path / path.name).write_text(path.read_text())
+    (tmp_path / f"{name}.json").write_text("[]")
+
+    def no_bedrock(_settings):
+        raise AssertionError("Bedrock was reached")
+
+    monkeypatch.setattr(evaluate, "bedrock_models", no_bedrock)
+    with pytest.raises(SourceError, match=f"no golden cases found in .*{name}.json"):
+        evaluate.run_eval(golden_dir=tmp_path)
