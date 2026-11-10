@@ -132,3 +132,4 @@ def eval_(
         typer.echo(f"FAIL: {line}")
     if failed:
         raise typer.Exit(code=1)
+    typer.echo("PASS: all thresholds met")
