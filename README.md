@@ -216,7 +216,7 @@ uv run rag chat --source pdf
 
 ### Ask from the browser
 
-Three parts: a Python service (opens the bundled PDF once), a Node.js API and a React page. Needs AWS access, like `rag ask`. Run each in its own terminal, then open http://localhost:5173.
+Three parts: a Python service (lists the three Sources; opens the PDF at start and the web and SQL Sources on first use), a Node.js API and a React page. Needs AWS access, like `rag ask`. Run each in its own terminal, then open http://localhost:5173.
 
 ```bash
 uv run uvicorn rag_course.service:create_app --factory --port 8000
