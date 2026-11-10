@@ -1,5 +1,6 @@
 // @vitest-environment node
 import http from "node:http";
+import net from "node:net";
 import { afterEach, expect, test } from "vitest";
 import { createApi } from "./api.js";
 
@@ -50,4 +51,39 @@ test("returns one plain error when the Python service is down or fails", async (
     expect(reply.status).toBe(502);
     expect(await reply.json()).toEqual({ error: "The answer service is not available. Try again." });
   }
+});
+
+const raw = (url, text) =>
+  fetch(`${url}/api/ask`, { method: "POST", headers: { "content-type": "application/json" }, body: text });
+
+test("array, string, number and unparsable bodies get the plain 400", async () => {
+  const api = await listen(createApi("http://127.0.0.1:1"));
+  for (const text of ["[]", '["hi"]', '"hi"', "7", "not json", ""]) {
+    const reply = await raw(api, text);
+    expect(reply.status).toBe(400);
+    expect(await reply.json()).toEqual({ error: "Type a question first." });
+  }
+});
+
+test("an oversized body gets one plain error", async () => {
+  const api = await listen(createApi("http://127.0.0.1:1"));
+  const reply = await post(api, { question: "x".repeat(200_000) });
+  expect(reply.status).toBe(413);
+  expect(await reply.json()).toEqual({ error: "That question is too long." });
+});
+
+test("a client that disconnects mid-request does not stop the API", async () => {
+  const api = await listen(createApi("http://127.0.0.1:1"));
+  const { port } = new URL(api);
+  await new Promise((done) => {
+    const socket = net.connect(Number(port), "127.0.0.1", () => {
+      socket.write("POST /api/ask HTTP/1.1\r\nhost: x\r\ncontent-type: application/json\r\ncontent-length: 500\r\n\r\n{\"question\":");
+      setTimeout(() => socket.destroy(), 20);
+    });
+    socket.on("close", done);
+    socket.on("error", () => {});
+  });
+  await new Promise((done) => setTimeout(done, 100));
+  const reply = await post(api, { question: "Still up?" });
+  expect(reply.status).toBe(502);
 });
