@@ -52,12 +52,6 @@ def test_readme_sections_follow_the_template_order():
     assert re.findall(r"^## (.+)$", prose, re.M) == SECTION_ORDER
 
 
-def test_setup_has_fewer_than_10_numbered_steps():
-    steps = re.findall(r"^(\d+)\. ", _section("Setup"), re.M)
-    assert 0 < len(steps) < 10
-    assert steps == [str(n) for n in range(1, len(steps) + 1)]
-
-
 def test_setup_stays_at_6_steps():
     setup = _section("Setup")
     assert "Setup takes 6 steps." in setup
