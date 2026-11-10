@@ -47,3 +47,4 @@
 | #70 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #72 merged to staging 3b35cdb through the gate, reviewed at 59713e2. 207 passed. Two 5-step README mutants fail the setup test. No findings. |
 | #69 | build:advanced → qa:advanced → review:bounced | bounced | Ready | PR #73 correct at bf02ed3, 217 passed. Merge gate exit 5: tests/test_cli.py conflicts with staging after #68. Label loop:rebase. Open R1: a malformed golden JSON prints "no golden cases found". |
 | #71 | preflight:blocked | blocked | Blocked | Same file (tests/test_eval.py) as #69. blocked-by: 69. |
+| #69 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #73 rebased onto staging, merged 06835eb through the gate at head 89ba446. 218 passed offline. R1 (malformed golden JSON message) fixed in round 2. An empty golden set prints one line and exits 2. |
