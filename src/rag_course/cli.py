@@ -1,10 +1,12 @@
 import re
 import sys
+from contextlib import contextmanager
 from enum import Enum
 from importlib.metadata import version as package_version
 from pathlib import Path
 
 import typer
+from botocore.exceptions import NoCredentialsError, NoRegionError, PartialCredentialsError
 
 import rag_course
 from rag_course import pdf as pdf_pipeline
@@ -31,6 +33,16 @@ def main(
     """Ask questions over web pages, a PDF or a SQL database."""
 
 
+@contextmanager
+def _aws_access():
+    """Turn a missing AWS login or region into one plain line and exit 2."""
+    try:
+        yield
+    except (NoCredentialsError, PartialCredentialsError, NoRegionError):
+        typer.echo("Error: no AWS access found. Run `aws configure`, enable Bedrock model access, then try again.", err=True)
+        raise typer.Exit(code=2)
+
+
 class Source(str, Enum):
     web = "web"
     pdf = "pdf"
@@ -50,7 +62,8 @@ def ask(
         raise typer.Exit(code=2)
     _check_pdf(source, pdf)
     try:
-        answer = rag_course.ask(source.value, question, pdf=pdf, db=db)
+        with _aws_access():
+            answer = rag_course.ask(source.value, question, pdf=pdf, db=db)
     except SourceError as error:
         typer.echo(f"Error: {error}", err=True)
         raise typer.Exit(code=2)
@@ -82,11 +95,13 @@ def chat(
             typer.echo("Type a question, or exit to stop.")
             continue
         try:
-            answer = answer or rag_course.open_source(source.value, pdf=pdf, db=db)
+            with _aws_access():
+                answer = answer or rag_course.open_source(source.value, pdf=pdf, db=db)
+                reply = answer(question)
         except SourceError as error:
             typer.echo(f"Error: {error}", err=True)
             raise typer.Exit(code=2)
-        typer.echo(answer(question))
+        typer.echo(reply)
 
 
 @app.command("eval")
@@ -101,7 +116,8 @@ def eval_(
     if not re.fullmatch(r"[A-Za-z0-9_-]+", mode):
         typer.echo("Error: --mode may only hold letters, digits, - and _", err=True)
         raise typer.Exit(code=2)
-    scores = evaluation.run_eval()
+    with _aws_access():
+        scores = evaluation.run_eval()
     typer.echo(evaluation.format_scores(scores))
     reports = report.write_reports(scores, mode, out, update_baseline)
     typer.echo(f"reports: {reports.csv} {reports.html}")

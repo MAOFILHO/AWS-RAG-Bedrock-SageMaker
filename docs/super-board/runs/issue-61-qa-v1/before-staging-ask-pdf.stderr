@@ -1,0 +1,259 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/cli.py:53 in ask   │
+│                                                                              │
+│    50 │   │   raise typer.Exit(code=2)                                       │
+│    51 │   _check_pdf(source, pdf)                                            │
+│    52 │   try:                                                               │
+│ ❱  53 │   │   answer = rag_course.ask(source.value, question, pdf=pdf,       │
+│       db=db)                                                                 │
+│    54 │   except SourceError as error:                                       │
+│    55 │   │   typer.echo(f"Error: {error}", err=True)                        │
+│    56 │   │   raise typer.Exit(code=2)                                       │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/__init__.py:24 in  │
+│ ask                                                                          │
+│                                                                              │
+│   21 ) -> str:                                                               │
+│   22 │   settings = Settings.from_env()                                      │
+│   23 │   with tracing(settings):                                             │
+│ ❱ 24 │   │   return _ask(source, question, models or                         │
+│      bedrock_models(settings), fetch, pdf, db)                               │
+│   25                                                                         │
+│   26                                                                         │
+│   27 @traceable(                                                             │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/__init__.py:43 in  │
+│ _ask                                                                         │
+│                                                                              │
+│   40 │   if source == "web":                                                 │
+│   41 │   │   return web.ask(question, models, fetch or web.fetch_page)       │
+│   42 │   if source == "pdf":                                                 │
+│ ❱ 43 │   │   return pdf_pipeline.ask(question, models, pdf or                │
+│      pdf_pipeline.DEFAULT_PDF)                                               │
+│   44 │   if source == "sql":                                                 │
+│   45 │   │   return sql.ask(question, models, db or sql.DEFAULT_DB)          │
+│   46 │   raise ValueError(f"unknown source: {source}")                       │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/pdf.py:42 in ask   │
+│                                                                              │
+│   39                                                                         │
+│   40                                                                         │
+│   41 def ask(question: str, models: Models, path: Path = DEFAULT_PDF) ->     │
+│      str:                                                                    │
+│ ❱ 42 │   return answer(question, store(models, path), models)                │
+│   43                                                                         │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/pdf.py:34 in store │
+│                                                                              │
+│   31                                                                         │
+│   32                                                                         │
+│   33 def store(models: Models, path: Path = DEFAULT_PDF) -> VectorStore:     │
+│ ❱ 34 │   return VectorStore(models.embed, chunks(path))                      │
+│   35                                                                         │
+│   36                                                                         │
+│   37 def answer(question: str, source: VectorStore, models: Models) -> str:  │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/core.py:170 in     │
+│ __init__                                                                     │
+│                                                                              │
+│   167 │                                                                      │
+│   168 │   def __init__(self, embed: EmbeddingModel, chunks: list[Chunk]):    │
+│   169 │   │   self.embed, self.chunks = embed, chunks                        │
+│ ❱ 170 │   │   self.vectors = np.array(embed.embed([c.text for c in chunks])) │
+│   171 │                                                                      │
+│   172 │   def search(self, query: str, k: int = 3) -> list[tuple[Chunk,      │
+│       float]]:                                                               │
+│   173 │   │   query_vec = np.array(self.embed.embed([query])[0])             │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/core.py:135 in     │
+│ embed                                                                        │
+│                                                                              │
+│   132 │   def embed(self, texts: list[str]) -> list[list[float]]:            │
+│   133 │   │   vectors = []                                                   │
+│   134 │   │   for text in texts:                                             │
+│ ❱ 135 │   │   │   response = with_retry(                                     │
+│   136 │   │   │   │   lambda: self.client.invoke_model(                      │
+│   137 │   │   │   │   │   modelId=self.model_id,                             │
+│       body=json.dumps({"inputText": text})                                   │
+│   138 │   │   │   │   ),                                                     │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/core.py:100 in     │
+│ with_retry                                                                   │
+│                                                                              │
+│    97 │   """Run call, retrying a transient Bedrock error up to TRIES times  │
+│       in all; raise the last error."""                                       │
+│    98 │   for attempt in range(1, TRIES + 1):                                │
+│    99 │   │   try:                                                           │
+│ ❱ 100 │   │   │   return call()                                              │
+│   101 │   │   except Exception as error:                                     │
+│   102 │   │   │   code = (getattr(error, "response", None) or                │
+│       {}).get("Error", {}).get("Code")                                       │
+│   103 │   │   │   if code not in TRANSIENT_ERRORS or attempt == TRIES:       │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/src/rag_course/core.py:136 in     │
+│ <lambda>                                                                     │
+│                                                                              │
+│   133 │   │   vectors = []                                                   │
+│   134 │   │   for text in texts:                                             │
+│   135 │   │   │   response = with_retry(                                     │
+│ ❱ 136 │   │   │   │   lambda: self.client.invoke_model(                      │
+│   137 │   │   │   │   │   modelId=self.model_id,                             │
+│       body=json.dumps({"inputText": text})                                   │
+│   138 │   │   │   │   ),                                                     │
+│   139 │   │   │   │   self.sleep,                                            │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/client.py:606 in _api_call                                        │
+│                                                                              │
+│    603 │   │   │   │   │   f"{py_operation_name}() only accepts keyword      │
+│        arguments."                                                           │
+│    604 │   │   │   │   )                                                     │
+│    605 │   │   │   # The "self" in this scope is referring to the            │
+│        BaseClient.                                                           │
+│ ❱  606 │   │   │   return self._make_api_call(operation_name, kwargs)        │
+│    607 │   │                                                                 │
+│    608 │   │   _api_call.__name__ = str(py_operation_name)                   │
+│    609                                                                       │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/context.py:123 in wrapper                                         │
+│                                                                              │
+│   120 │   │   │   with start_as_current_context():                           │
+│   121 │   │   │   │   if hook:                                               │
+│   122 │   │   │   │   │   hook()                                             │
+│ ❱ 123 │   │   │   │   return func(*args, **kwargs)                           │
+│   124 │   │                                                                  │
+│   125 │   │   return wrapper                                                 │
+│   126                                                                        │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/client.py:1076 in _make_api_call                                  │
+│                                                                              │
+│   1073 │   │   │   │   self.meta.config, request_dict, operation_model       │
+│   1074 │   │   │   )                                                         │
+│   1075 │   │   │   apply_request_checksum(request_dict)                      │
+│ ❱ 1076 │   │   │   http, parsed_response = self._make_request(               │
+│   1077 │   │   │   │   operation_model, request_dict, request_context        │
+│   1078 │   │   │   )                                                         │
+│   1079                                                                       │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/client.py:1100 in _make_request                                   │
+│                                                                              │
+│   1097 │                                                                     │
+│   1098 │   def _make_request(self, operation_model, request_dict,            │
+│        request_context):                                                     │
+│   1099 │   │   try:                                                          │
+│ ❱ 1100 │   │   │   return self._endpoint.make_request(operation_model,       │
+│        request_dict)                                                         │
+│   1101 │   │   except Exception as e:                                        │
+│   1102 │   │   │   self.meta.events.emit(                                    │
+│   1103 │   │   │   │                                                         │
+│        f'after-call-error.{self._service_model.service_id.hyphenize()}.{oper │
+│        ation_model.name}',                                                   │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/endpoint.py:119 in make_request                                   │
+│                                                                              │
+│   116 │   │   │   operation_model,                                           │
+│   117 │   │   │   request_dict,                                              │
+│   118 │   │   )                                                              │
+│ ❱ 119 │   │   return self._send_request(request_dict, operation_model)       │
+│   120 │                                                                      │
+│   121 │   def create_request(self, params, operation_model=None):            │
+│   122 │   │   request = create_request_object(params)                        │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/endpoint.py:198 in _send_request                                  │
+│                                                                              │
+│   195 │   │   attempts = 1                                                   │
+│   196 │   │   context = request_dict['context']                              │
+│   197 │   │   self._update_retries_context(context, attempts)                │
+│ ❱ 198 │   │   request = self.create_request(request_dict, operation_model)   │
+│   199 │   │   success_response, exception = self._get_response(              │
+│   200 │   │   │   request, operation_model, context                          │
+│   201 │   │   )                                                              │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/endpoint.py:132 in create_request                                 │
+│                                                                              │
+│   129 │   │   │   )                                                          │
+│   130 │   │   │   service_id =                                               │
+│       operation_model.service_model.service_id.hyphenize()                   │
+│   131 │   │   │   event_name =                                               │
+│       f'request-created.{service_id}.{operation_model.name}'                 │
+│ ❱ 132 │   │   │   self._event_emitter.emit(                                  │
+│   133 │   │   │   │   event_name,                                            │
+│   134 │   │   │   │   request=request,                                       │
+│   135 │   │   │   │   operation_name=operation_model.name,                   │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/hooks.py:412 in emit                                              │
+│                                                                              │
+│   409 │                                                                      │
+│   410 │   def emit(self, event_name, **kwargs):                              │
+│   411 │   │   aliased_event_name = self._alias_event_name(event_name)        │
+│ ❱ 412 │   │   return self._emitter.emit(aliased_event_name, **kwargs)        │
+│   413 │                                                                      │
+│   414 │   def emit_until_response(self, event_name, **kwargs):               │
+│   415 │   │   aliased_event_name = self._alias_event_name(event_name)        │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/hooks.py:256 in emit                                              │
+│                                                                              │
+│   253 │   │   :return: List of (handler, response) tuples from all processed │
+│   254 │   │   │   │    handlers.                                             │
+│   255 │   │   """                                                            │
+│ ❱ 256 │   │   return self._emit(event_name, kwargs)                          │
+│   257 │                                                                      │
+│   258 │   def emit_until_response(self, event_name, **kwargs):               │
+│   259 │   │   """                                                            │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/hooks.py:239 in _emit                                             │
+│                                                                              │
+│   236 │   │   responses = []                                                 │
+│   237 │   │   for handler in handlers_to_call:                               │
+│   238 │   │   │   logger.debug('Event %s: calling handler %s', event_name,   │
+│       handler)                                                               │
+│ ❱ 239 │   │   │   response = handler(**kwargs)                               │
+│   240 │   │   │   responses.append((handler, response))                      │
+│   241 │   │   │   if stop_on_response and response is not None:              │
+│   242 │   │   │   │   return responses                                       │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/signers.py:108 in handler                                         │
+│                                                                              │
+│    105 │   │   # from a client's event emitter.  When a new request is       │
+│        created                                                               │
+│    106 │   │   # this method is invoked to sign the request.                 │
+│    107 │   │   # Don't call this method directly.                            │
+│ ❱  108 │   │   return self.sign(operation_name, request)                     │
+│    109 │                                                                     │
+│    110 │   def sign(                                                         │
+│    111 │   │   self,                                                         │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/signers.py:200 in sign                                            │
+│                                                                              │
+│    197 │   │   │   │   else:                                                 │
+│    198 │   │   │   │   │   raise e                                           │
+│    199 │   │   │                                                             │
+│ ❱  200 │   │   │   auth.add_auth(request)                                    │
+│    201 │                                                                     │
+│    202 │   def _resolve_identity_cache(self, kwargs, cache, cache_key):      │
+│    203 │   │   kwargs['identity_cache'] = cache                              │
+│                                                                              │
+│ /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.venv/lib/python3.12/site-package │
+│ s/botocore/auth.py:432 in add_auth                                           │
+│                                                                              │
+│    429 │                                                                     │
+│    430 │   def add_auth(self, request):                                      │
+│    431 │   │   if self.credentials is None:                                  │
+│ ❱  432 │   │   │   raise NoCredentialsError()                                │
+│    433 │   │   datetime_now = get_current_datetime()                         │
+│    434 │   │   request.context['timestamp'] =                                │
+│        datetime_now.strftime(SIGV4_TIMESTAMP)                                │
+│    435 │   │   # This could be a retry.  Make sure the previous              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+NoCredentialsError: Unable to locate credentials
