@@ -31,3 +31,63 @@ def test_service_rejects_an_empty_question():
         reply = client.post("/ask", json={"question": "  "})
     assert reply.status_code == 400
     assert reply.json() == {"error": "question must not be empty"}
+
+
+def _sources_app():
+    from fakes import saved_page
+
+    fetched = []
+
+    def fetch(url):
+        fetched.append(url)
+        return saved_page(url)
+
+    return fetched, fetch
+
+
+def test_service_lists_the_three_sources():
+    with TestClient(create_app(fake_models())) as client:
+        listed = client.get("/sources").json()
+    assert [s["id"] for s in listed] == ["web", "pdf", "sql"]
+    assert all(s["name"] and s["description"] for s in listed)
+
+
+def test_service_answers_each_source_with_its_pipeline():
+    from fakes import fake_sql_models
+
+    fetched, fetch = _sources_app()
+    models = fake_sql_models({"How many customers are there?": "SELECT COUNT(CustomerId) FROM Customer"})
+    with TestClient(create_app(models, fetch=fetch)) as client:
+        sql_reply = client.post("/ask", json={"question": "How many customers are there?", "source": "sql"})
+    assert sql_reply.json() == {"answer": "Rows: [(59,)]"}
+    with TestClient(create_app(fake_models(), fetch=fetch)) as client:
+        web_reply = client.post("/ask", json={"question": "What is cloud computing?", "source": "web"})
+        pdf_reply = client.post("/ask", json={"question": QUESTION, "source": "pdf"})
+    assert web_reply.json() == {"answer": rag_course.ask("web", "What is cloud computing?", models=fake_models(), fetch=fetch)}
+    assert pdf_reply.json() == {"answer": rag_course.ask("pdf", QUESTION, models=fake_models())}
+
+
+def test_service_loads_the_web_pages_once():
+    fetched, fetch = _sources_app()
+    with TestClient(create_app(fake_models(), fetch=fetch)) as client:
+        assert fetched == []
+        client.post("/ask", json={"question": "What is cloud computing?", "source": "web"})
+        loaded = len(fetched)
+        client.post("/ask", json={"question": "What is data science?", "source": "web"})
+    assert loaded > 0 and len(fetched) == loaded
+
+
+def test_service_refuses_a_question_that_asks_to_change_data():
+    from fakes import fake_sql_models
+    from rag_course import sql
+
+    question = "How many customers are there?; DROP TABLE Customer;"
+    with TestClient(create_app(fake_sql_models({}))) as client:
+        reply = client.post("/ask", json={"question": question, "source": "sql"})
+    assert reply.json() == {"answer": sql.REFUSAL}
+
+
+def test_service_rejects_an_unknown_source():
+    with TestClient(create_app(fake_models())) as client:
+        reply = client.post("/ask", json={"question": "Hi?", "source": "csv"})
+    assert reply.status_code == 400
