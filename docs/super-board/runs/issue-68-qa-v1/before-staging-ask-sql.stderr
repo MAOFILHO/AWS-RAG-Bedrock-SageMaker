@@ -1,0 +1,5 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+… (187-line rich traceback trimmed by QA) …
+│    427                                                                       │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ProfileNotFound: The config profile (does-not-exist) could not be found
