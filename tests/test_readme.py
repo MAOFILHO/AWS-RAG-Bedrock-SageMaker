@@ -23,10 +23,45 @@ def _rag_commands() -> list[list[str]]:
     return [shlex.split(line)[3:] for line in lines]
 
 
+SECTION_ORDER = [
+    "Why this is built this way",
+    "RAG architecture",
+    "Problem and Solution",
+    "Results",
+    "Architecture",
+    "The four notebooks",
+    "Tech Stack",
+    "AWS tools and their role",
+    "Prerequisites",
+    "Setup",
+    "Running the project",
+    "Project layout",
+    "Run the tests",
+    "AWS Region",
+    "Cost estimate",
+    "Key engineering decisions",
+    "Author",
+]
+
+
+def test_readme_sections_follow_the_template_order():
+    """Title and intro come first as the `#` heading; the other 17 sections are `##` headings in this order."""
+    prose = re.sub(r"^```.*?^```", "", README, flags=re.M | re.S)
+    assert README.startswith("# ")
+    assert len(re.findall(r"^# ", prose, re.M)) == 1
+    assert re.findall(r"^## (.+)$", prose, re.M) == SECTION_ORDER
+
+
 def test_setup_has_fewer_than_10_numbered_steps():
     steps = re.findall(r"^(\d+)\. ", _section("Setup"), re.M)
     assert 0 < len(steps) < 10
     assert steps == [str(n) for n in range(1, len(steps) + 1)]
+
+
+def test_setup_stays_at_6_steps():
+    setup = _section("Setup")
+    assert "Setup takes 6 steps." in setup
+    assert re.findall(r"^(\d+)\. ", setup, re.M) == ["1", "2", "3", "4", "5", "6"]
 
 
 def test_aws_tools_table_lists_each_tool_and_marks_sagemaker_not_used():
