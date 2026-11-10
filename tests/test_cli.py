@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from typer.testing import CliRunner
 
@@ -67,7 +69,8 @@ def test_version_reads_installed_metadata_not_a_copied_string(monkeypatch):
 def test_help_lists_version():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "--version" in result.output
+    # Typer forces colour under GitHub Actions, which splits "--version" with ANSI codes.
+    assert "--version" in re.sub(r"\x1b\[[0-9;]*m", "", result.output)
 
 
 def test_ask_pdf_missing_path_errors_before_any_model_call(monkeypatch, tmp_path):
