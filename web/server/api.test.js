@@ -33,7 +33,7 @@ test("returns one plain error for an empty question and does not call the servic
   let called = false;
   const service = await fakeService(() => (called = true));
   const api = await listen(createApi(service));
-  for (const body of [{ question: "   " }, {}, { question: 5 }]) {
+  for (const body of [{ question: "   " }, {}, { question: 5 }, null]) {
     const reply = await post(api, body);
     expect(reply.status).toBe(400);
     expect(await reply.json()).toEqual({ error: "Type a question first." });

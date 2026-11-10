@@ -17,7 +17,7 @@ const readJson = async (req) => {
 export function createApi(serviceUrl) {
   return http.createServer(async (req, res) => {
     if (req.method !== "POST" || req.url !== "/api/ask") return send(res, 404, { error: "Not found." });
-    const { question } = await readJson(req);
+    const { question } = (await readJson(req)) ?? {};
     if (typeof question !== "string" || !question.trim()) return send(res, 400, { error: "Type a question first." });
     try {
       const reply = await fetch(`${serviceUrl}/ask`, {
