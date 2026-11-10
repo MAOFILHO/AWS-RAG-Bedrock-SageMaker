@@ -58,6 +58,12 @@ def test_setup_has_fewer_than_10_numbered_steps():
     assert steps == [str(n) for n in range(1, len(steps) + 1)]
 
 
+def test_setup_stays_at_6_steps():
+    setup = _section("Setup")
+    assert "Setup takes 6 steps." in setup
+    assert re.findall(r"^(\d+)\. ", setup, re.M) == ["1", "2", "3", "4", "5", "6"]
+
+
 def test_aws_tools_table_lists_each_tool_and_marks_sagemaker_not_used():
     rows = {
         cells[0]: cells[2]
