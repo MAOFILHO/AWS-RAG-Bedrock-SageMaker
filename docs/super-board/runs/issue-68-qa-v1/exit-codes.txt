@@ -1,8 +1,0 @@
-ask-sql exit=2
-ask-pdf exit=2
-ask-web exit=2
-eval exit=2
-chat-sql exit=2
-chat-pdf exit=2
-chat-web exit=2
-before-staging-ask-sql exit=1

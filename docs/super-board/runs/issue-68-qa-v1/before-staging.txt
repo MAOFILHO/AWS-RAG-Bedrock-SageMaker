@@ -1,3 +1,4 @@
+# Before: staging e288c25, rag ask hello --source sql, AWS_PROFILE=does-not-exist · before-staging-ask-sql exit=1
 ╭───────────────────── Traceback (most recent call last) ──────────────────────╮
 … (187-line rich traceback trimmed by QA) …
 │    427                                                                       │

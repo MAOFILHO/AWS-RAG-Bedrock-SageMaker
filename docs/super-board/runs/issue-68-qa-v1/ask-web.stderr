@@ -1,1 +1,0 @@
-Error: AWS profile 'does-not-exist' not found. Run `aws configure --profile does-not-exist` or fix AWS_PROFILE.
