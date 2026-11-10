@@ -1,0 +1,4 @@
+# AC tests: pytest tests/test_cli.py -k 'wrong_aws_profile or without_aws_access'
+4 passed, 22 deselected in 0.19s
+# Full suite: uv run pytest
+209 passed, 25 deselected in 2.41s

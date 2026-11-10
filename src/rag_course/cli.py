@@ -6,7 +6,7 @@ from importlib.metadata import version as package_version
 from pathlib import Path
 
 import typer
-from botocore.exceptions import NoCredentialsError, NoRegionError, PartialCredentialsError
+from botocore.exceptions import NoCredentialsError, NoRegionError, PartialCredentialsError, ProfileNotFound
 
 import rag_course
 from rag_course import pdf as pdf_pipeline
@@ -35,11 +35,14 @@ def main(
 
 @contextmanager
 def _aws_access():
-    """Turn a missing AWS login or region into one plain line and exit 2."""
+    """Turn a missing AWS login, region or profile into one plain line and exit 2."""
     try:
         yield
     except (NoCredentialsError, PartialCredentialsError, NoRegionError):
         typer.echo("Error: no AWS access found. Run `aws configure`, enable Bedrock model access, then try again.", err=True)
+        raise typer.Exit(code=2)
+    except ProfileNotFound as error:
+        typer.echo(f"Error: AWS profile {error.kwargs['profile']!r} not found. Run `aws configure --profile {error.kwargs['profile']}` or fix AWS_PROFILE.", err=True)
         raise typer.Exit(code=2)
 
 

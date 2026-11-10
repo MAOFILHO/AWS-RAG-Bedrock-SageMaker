@@ -1,0 +1,22 @@
+# Real CLI runs, AWS_PROFILE=does-not-exist, no AWS keys, no monkeypatching. Head 736641c.
+
+## ask-sql exit=2 · stderr (1 line):
+Error: AWS profile 'does-not-exist' not found. Run `aws configure --profile does-not-exist` or fix AWS_PROFILE.
+
+## ask-pdf exit=2 · stderr (1 line):
+Error: AWS profile 'does-not-exist' not found. Run `aws configure --profile does-not-exist` or fix AWS_PROFILE.
+
+## ask-web exit=2 · stderr (1 line):
+Error: AWS profile 'does-not-exist' not found. Run `aws configure --profile does-not-exist` or fix AWS_PROFILE.
+
+## eval exit=2 · stderr (1 line):
+Error: AWS profile 'does-not-exist' not found. Run `aws configure --profile does-not-exist` or fix AWS_PROFILE.
+
+## chat-sql exit=2 · stderr (1 line):
+Error: AWS profile 'does-not-exist' not found. Run `aws configure --profile does-not-exist` or fix AWS_PROFILE.
+
+## chat-pdf exit=2 · stderr (1 line):
+Error: AWS profile 'does-not-exist' not found. Run `aws configure --profile does-not-exist` or fix AWS_PROFILE.
+
+## chat-web exit=2 · stderr (1 line):
+Error: AWS profile 'does-not-exist' not found. Run `aws configure --profile does-not-exist` or fix AWS_PROFILE.
