@@ -1,0 +1,10 @@
+--- mutant: question check removed
+FAILED tests/test_sql.py::test_stacked_write_in_the_question_is_refused_though_the_model_writes_a_safe_select
+FAILED tests/test_sql.py::test_stacked_write_in_the_question_is_refused_before_any_model_call
+2 failed, 28 passed, 6 deselected in 0.25s
+--- mutant: search whole question, no semicolon needed
+FAILED tests/test_sql.py::test_read_only_question_with_a_write_word_and_no_semicolon_is_answered
+1 failed, 29 passed, 6 deselected in 0.25s
+--- mutant: check runs after the model call
+FAILED tests/test_sql.py::test_stacked_write_in_the_question_is_refused_before_any_model_call
+1 failed, 29 passed, 6 deselected in 0.22s

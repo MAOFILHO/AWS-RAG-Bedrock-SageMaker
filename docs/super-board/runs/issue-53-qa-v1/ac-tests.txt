@@ -1,0 +1,8 @@
+AC1 tests/test_eval.py::test_save_baseline_then_a_score_0_10_lower_is_flagged_as_a_regression PASSED
+AC1 tests/test_eval.py::test_cli_prints_each_score_against_the_baseline_and_flags_the_drop PASSED
+AC2 tests/test_eval.py::test_a_score_0_02_lower_is_not_flagged PASSED
+AC2 tests/test_eval.py::test_a_drop_of_exactly_0_05_is_not_flagged_and_0_06_is PASSED (added by QA)
+AC3 tests/test_eval.py::test_no_baseline_file_prints_one_hint_line_and_skips_the_score_compare PASSED
+AC3 tests/test_eval.py::test_a_baseline_saved_before_scores_were_kept_still_compares_cases_without_crashing PASSED (added by QA)
+AC4 tests/test_eval.py::test_planted_wrong_answer_scores_below_0_5_with_the_fake_judge PASSED
+AC5 see pytest-offline.txt

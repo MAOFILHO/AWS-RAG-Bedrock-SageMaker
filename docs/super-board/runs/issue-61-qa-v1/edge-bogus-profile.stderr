@@ -1,0 +1,191 @@
+╭───────────────────── Traceback (most recent call last) ──────────────────────╮
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/src │
+│ /rag_course/cli.py:66 in ask                                                 │
+│                                                                              │
+│    63 │   _check_pdf(source, pdf)                                            │
+│    64 │   try:                                                               │
+│    65 │   │   with _aws_access():                                            │
+│ ❱  66 │   │   │   answer = rag_course.ask(source.value, question, pdf=pdf,   │
+│       db=db)                                                                 │
+│    67 │   except SourceError as error:                                       │
+│    68 │   │   typer.echo(f"Error: {error}", err=True)                        │
+│    69 │   │   raise typer.Exit(code=2)                                       │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/src │
+│ /rag_course/__init__.py:24 in ask                                            │
+│                                                                              │
+│   21 ) -> str:                                                               │
+│   22 │   settings = Settings.from_env()                                      │
+│   23 │   with tracing(settings):                                             │
+│ ❱ 24 │   │   return _ask(source, question, models or                         │
+│      bedrock_models(settings), fetch, pdf, db)                               │
+│   25                                                                         │
+│   26                                                                         │
+│   27 @traceable(                                                             │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/src │
+│ /rag_course/core.py:148 in bedrock_models                                    │
+│                                                                              │
+│   145 def bedrock_models(settings: Settings) -> Models:                      │
+│   146 │   import boto3                                                       │
+│   147 │                                                                      │
+│ ❱ 148 │   client = boto3.client("bedrock-runtime",                           │
+│       region_name=settings.region)                                           │
+│   149 │   return Models(                                                     │
+│   150 │   │   answer=BedrockAnswerModel(client, settings.model_id),          │
+│   151 │   │   embed=BedrockEmbeddingModel(client, settings.embed_model_id),  │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/boto3/__init__.py:93 in client               │
+│                                                                              │
+│    90 │                                                                      │
+│    91 │   See :py:meth:`boto3.session.Session.client`.                       │
+│    92 │   """                                                                │
+│ ❱  93 │   return _get_default_session().client(*args, **kwargs)              │
+│    94                                                                        │
+│    95                                                                        │
+│    96 def resource(*args, **kwargs):                                         │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/boto3/__init__.py:81 in _get_default_session │
+│                                                                              │
+│    78 │   :return: The default session                                       │
+│    79 │   """                                                                │
+│    80 │   if DEFAULT_SESSION is None:                                        │
+│ ❱  81 │   │   setup_default_session()                                        │
+│    82 │   _warn_deprecated_python()                                          │
+│    83 │                                                                      │
+│    84 │   return DEFAULT_SESSION                                             │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/boto3/__init__.py:35 in                      │
+│ setup_default_session                                                        │
+│                                                                              │
+│    32 │   parameters, because a default session will be created for you.     │
+│    33 │   """                                                                │
+│    34 │   global DEFAULT_SESSION                                             │
+│ ❱  35 │   DEFAULT_SESSION = Session(**kwargs)                                │
+│    36                                                                        │
+│    37                                                                        │
+│    38 def set_stream_logger(name='boto3', level=logging.DEBUG,               │
+│       format_string=None):                                                   │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/boto3/session.py:106 in __init__             │
+│                                                                              │
+│   103 │   │   self.resource_factory = ResourceFactory(                       │
+│   104 │   │   │   self._session.get_component('event_emitter')               │
+│   105 │   │   )                                                              │
+│ ❱ 106 │   │   self._setup_loader()                                           │
+│   107 │   │   self._register_default_handlers()                              │
+│   108 │                                                                      │
+│   109 │   def __repr__(self):                                                │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/boto3/session.py:147 in _setup_loader        │
+│                                                                              │
+│   144 │   │   """                                                            │
+│   145 │   │   Setup loader paths so that we can load resources.              │
+│   146 │   │   """                                                            │
+│ ❱ 147 │   │   self._loader = self._session.get_component('data_loader')      │
+│   148 │   │   self._loader.search_paths.append(                              │
+│   149 │   │   │   os.path.join(os.path.dirname(__file__), 'data')            │
+│   150 │   │   )                                                              │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/botocore/session.py:816 in get_component     │
+│                                                                              │
+│    813 │                                                                     │
+│    814 │   def get_component(self, name):                                    │
+│    815 │   │   try:                                                          │
+│ ❱  816 │   │   │   return self._components.get_component(name)               │
+│    817 │   │   except ValueError:                                            │
+│    818 │   │   │   if name in ['endpoint_resolver', 'exceptions_factory']:   │
+│    819 │   │   │   │   warnings.warn(                                        │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/botocore/session.py:1201 in get_component    │
+│                                                                              │
+│   1198 │   def get_component(self, name):                                    │
+│   1199 │   │   if name in self._deferred:                                    │
+│   1200 │   │   │   factory = self._deferred[name]                            │
+│ ❱ 1201 │   │   │   self._components[name] = factory()                        │
+│   1202 │   │   │   # Only delete the component from the deferred dict after  │
+│   1203 │   │   │   # successfully creating the object from the factory as    │
+│        well as                                                               │
+│   1204 │   │   │   # injecting the instantiated value into the _components   │
+│        dict.                                                                 │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/botocore/session.py:201 in <lambda>          │
+│                                                                              │
+│    198 │   def _register_data_loader(self):                                  │
+│    199 │   │   self._components.lazy_register_component(                     │
+│    200 │   │   │   'data_loader',                                            │
+│ ❱  201 │   │   │   lambda:                                                   │
+│        create_loader(self.get_config_variable('data_path')),                 │
+│    202 │   │   )                                                             │
+│    203 │                                                                     │
+│    204 │   def _register_endpoint_resolver(self):                            │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/botocore/session.py:325 in                   │
+│ get_config_variable                                                          │
+│                                                                              │
+│    322 │   │   │   return self._get_config_variable_with_custom_methods(     │
+│    323 │   │   │   │   logical_name, methods                                 │
+│    324 │   │   │   )                                                         │
+│ ❱  325 │   │   return                                                        │
+│        self.get_component('config_store').get_config_variable(               │
+│    326 │   │   │   logical_name                                              │
+│    327 │   │   )                                                             │
+│    328                                                                       │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/botocore/configprovider.py:532 in            │
+│ get_config_variable                                                          │
+│                                                                              │
+│    529 │   │   if logical_name not in self._mapping:                         │
+│    530 │   │   │   return None                                               │
+│    531 │   │   provider = self._mapping[logical_name]                        │
+│ ❱  532 │   │   return provider.provide()                                     │
+│    533 │                                                                     │
+│    534 │   def get_config_provider(self, logical_name):                      │
+│    535 │   │   """                                                           │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/botocore/configprovider.py:738 in provide    │
+│                                                                              │
+│    735 │   │   ChainProvider. When no non-None value is found, None is       │
+│        returned.                                                             │
+│    736 │   │   """                                                           │
+│    737 │   │   for provider in self._providers:                              │
+│ ❱  738 │   │   │   value = provider.provide()                                │
+│    739 │   │   │   if value is not None:                                     │
+│    740 │   │   │   │   return self._convert_type(value)                      │
+│    741 │   │   return None                                                   │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/botocore/configprovider.py:825 in provide    │
+│                                                                              │
+│    822 │                                                                     │
+│    823 │   def provide(self):                                                │
+│    824 │   │   """Provide a value from a config file property."""            │
+│ ❱  825 │   │   scoped_config = self._session.get_scoped_config()             │
+│    826 │   │   if isinstance(self._config_var_name, tuple):                  │
+│    827 │   │   │   section_config =                                          │
+│        scoped_config.get(self._config_var_name[0])                           │
+│    828 │   │   │   if not isinstance(section_config, dict):                  │
+│                                                                              │
+│ /Users/marco/K21/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-61-qa/.ve │
+│ nv/lib/python3.12/site-packages/botocore/session.py:424 in get_scoped_config │
+│                                                                              │
+│    421 │   │   │   # Otherwise if they specified a profile, it has to        │
+│    422 │   │   │   # exist (even if it's the default profile) otherwise      │
+│    423 │   │   │   # we complain.                                            │
+│ ❱  424 │   │   │   raise ProfileNotFound(profile=profile_name)               │
+│    425 │   │   else:                                                         │
+│    426 │   │   │   return profile_map[profile_name]                          │
+│    427                                                                       │
+╰──────────────────────────────────────────────────────────────────────────────╯
+ProfileNotFound: The config profile (does-not-exist) could not be found

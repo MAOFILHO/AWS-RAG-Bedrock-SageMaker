@@ -1,0 +1,1 @@
+Error: no AWS access found. Run `aws configure`, enable Bedrock model access, then try again.

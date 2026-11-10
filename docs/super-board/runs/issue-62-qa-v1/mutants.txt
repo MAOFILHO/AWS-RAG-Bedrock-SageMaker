@@ -1,0 +1,5 @@
+M1: delete `typer.echo("PASS: all thresholds met")` from eval_
+  uv run pytest -q tests/test_eval.py -> 1 failed, 23 passed (pass-line test red)
+M2: move the PASS echo above `for line in failed:` (printed on a failing run too)
+  uv run pytest -q tests/test_eval.py -> 1 failed, 23 passed (fail-line test red)
+Restored: uv run pytest -q tests/test_eval.py -> 24 passed; git status clean
