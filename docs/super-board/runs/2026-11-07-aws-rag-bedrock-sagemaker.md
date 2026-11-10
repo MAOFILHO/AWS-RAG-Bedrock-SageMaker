@@ -40,3 +40,4 @@
 | #19 | qa:advanced → review:blocked | blocked | Blocked | Fresh-clone dry-run passed 5 of 7 AC. Failed AC4 (no pass line in rag eval) and AC6 (no-AWS traceback). Filed #61 and #62. Blocked by 61, 62; the sweep returns it to Ready for re-QA. |
 | #61 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #63 merged to staging 582d137 through the gate. 206 passed offline. Real no-AWS runs exit 2 with one line. Open nit: a bogus AWS_PROFILE still prints a ProfileNotFound traceback. |
 | #62 | preflight:blocked | blocked | Blocked | Same file (src/rag_course/cli.py) as #61. Sequenced behind #61 with blocked-by: 61. Sweep frees it when #61 closes. |
+| #62 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #64 merged to staging 8d894e5 through the gate, reviewed at head 7661b3f. 206 passed offline. Truth check 95, run inline. No findings, no human step. |
