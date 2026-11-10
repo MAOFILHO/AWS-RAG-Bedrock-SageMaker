@@ -262,3 +262,51 @@ def test_chat_pdf_loads_once_and_retrieves_with_the_same_k_as_rag_ask(monkeypatc
     ks.clear()
     rag_course.ask("pdf", "What are SDKs and APIs?", models=fake_models())
     assert chat_ks == [ks[0], ks[0]] == [3, 3]
+
+
+class _NoAwsAccess:
+    def embed(self, texts):
+        from botocore.exceptions import NoCredentialsError
+
+        raise NoCredentialsError()
+
+    def answer(self, prompt):
+        return self.embed([prompt])
+
+
+def _without_aws_access(monkeypatch):
+    import rag_course
+    from rag_course import evaluate, web
+    from rag_course.core import Models
+    from fakes import saved_page
+
+    models = Models(answer=_NoAwsAccess(), embed=_NoAwsAccess())
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: models)
+    monkeypatch.setattr(evaluate, "bedrock_models", lambda settings: models)
+    monkeypatch.setattr(web, "fetch_page", saved_page)
+
+
+def _assert_one_plain_line(result):
+    assert result.exit_code == 2, result.output
+    lines = result.stderr.strip().splitlines()
+    assert len(lines) == 1
+    assert "aws configure" in lines[0]
+    assert "Traceback" not in result.output
+    assert "NoCredentialsError" not in result.output
+
+
+def test_ask_without_aws_access_prints_one_plain_line_for_every_source(monkeypatch):
+    _without_aws_access(monkeypatch)
+    for source in ("web", "pdf", "sql"):
+        _assert_one_plain_line(runner.invoke(app, ["ask", "What is cloud computing?", "--source", source]))
+
+
+def test_chat_without_aws_access_prints_one_plain_line(monkeypatch):
+    _without_aws_access(monkeypatch)
+    for source in ("web", "pdf", "sql"):
+        _assert_one_plain_line(runner.invoke(app, ["chat", "--source", source], input="What is cloud computing?\n"))
+
+
+def test_eval_without_aws_access_prints_one_plain_line(monkeypatch, tmp_path):
+    _without_aws_access(monkeypatch)
+    _assert_one_plain_line(runner.invoke(app, ["eval", "--out", str(tmp_path)]))
