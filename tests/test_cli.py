@@ -1,3 +1,4 @@
+import pytest
 from typer.testing import CliRunner
 
 from rag_course.cli import app
@@ -313,6 +314,24 @@ def test_chat_without_aws_access_prints_one_plain_line(monkeypatch):
 def test_eval_without_aws_access_prints_one_plain_line(monkeypatch, tmp_path):
     _without_aws_access(monkeypatch)
     _assert_one_plain_line(runner.invoke(app, ["eval", "--out", str(tmp_path)]))
+
+
+@pytest.mark.parametrize("content", [None, "", "[]"])
+def test_eval_with_an_empty_golden_set_prints_one_line_and_exits_2(monkeypatch, tmp_path, content):
+    from rag_course import evaluate
+
+    golden_dir = tmp_path / "golden"
+    golden_dir.mkdir()
+    if content is not None:
+        (golden_dir / "web.json").write_text(content)
+    run_eval = evaluate.run_eval
+    monkeypatch.setattr(evaluate, "run_eval", lambda: run_eval(golden_dir=golden_dir))
+    result = runner.invoke(app, ["eval", "--out", str(tmp_path / "out")])
+    assert result.exit_code == 2
+    lines = result.stderr.strip().splitlines()
+    assert len(lines) == 1 and "no golden cases found" in lines[0]
+    assert "Traceback" not in result.output
+    assert isinstance(result.exception, SystemExit)
 
 
 def test_wrong_aws_profile_prints_one_plain_line_naming_the_profile(monkeypatch, tmp_path):
