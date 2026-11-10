@@ -214,6 +214,16 @@ uv run rag ask --source sql "How many customers are there?"
 uv run rag chat --source pdf
 ```
 
+### Ask from the browser
+
+Three parts: a Python service (opens the bundled PDF once), a Node.js API and a React page. Needs AWS access, like `rag ask`. Run each in its own terminal, then open http://localhost:5173.
+
+```bash
+uv run uvicorn rag_course.service:create_app --factory --port 8000
+npm --prefix web install && npm --prefix web run api
+npm --prefix web run dev
+```
+
 ### Evaluate
 
 `rag eval` scores the golden question sets, writes reports and exits with code 1 when a threshold fails. It calls real Bedrock, including a judge model, so it costs a few cents per run.
@@ -271,6 +281,8 @@ Tests need no AWS access. A fake answer model and a fake embedding model replace
 uv run pytest
 ```
 
+`scripts/check.sh` runs every Offline test (Python, Node API, React) in one command, with the AWS variables removed.
+
 Live tests need AWS access. They call real Bedrock and cost a few cents. Run them by hand:
 
 ```bash
@@ -281,6 +293,7 @@ uv run pytest -m live
 |---|---|---|
 | Bedrock wrappers | `test_bedrock.py` | Request shapes, checked with botocore's Stubber |
 | CLI and README | `test_cli.py`, `test_readme.py` | Commands, exit codes, and that every README command parses |
+| Web service | `test_service.py`, `web/server/api.test.js`, `web/src/App.test.tsx` | The service, the Node API and the page, with fake models |
 | Sources | `test_web.py`, `test_pdf.py`, `test_sql.py` | Chunking, loading and the read-only SQL path |
 | Safety and data quality | `test_safety.py`, `test_data_quality.py` | Refusals, destructive questions, empty and odd input |
 | Evaluation | `test_eval.py`, `test_golden.py` | Scores, judge settings, cost sums and the golden sets |
