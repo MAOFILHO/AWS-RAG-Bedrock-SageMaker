@@ -1,0 +1,9 @@
+Mutations against builder head 0fb20e9, run with `uv run pytest -q tests/test_cli.py -k chat`, each restored after.
+
+M1 open_source per question (no reuse)        -> 1 failed (AC4 load count)
+M2 empty line not skipped                     -> 1 failed (AC2 hint, no Bedrock)
+M3 `exit` not recognised                      -> 2 failed (AC1, AC2)
+M4 Source loaded before the first question    -> 1 failed (AC2 no Bedrock)
+M5 sql chat returns a constant                -> survived on builder tests; 1 failed after QA test
+M6 pdf chat uses WEB_PROMPT                   -> survived on builder tests; 1 failed after QA test
+M7 chat retrieves k=1 instead of k=3          -> survives (fake answer model picks the same line)

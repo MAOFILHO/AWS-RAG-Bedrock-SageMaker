@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from rag_course.core import WEB_PROMPT, Chunk, Models, answer_from
+from rag_course.core import WEB_PROMPT, Chunk, Models, VectorStore, answer_with_context, store_from
 
 URLS = (
     "https://www.ibm.com/think/topics/cloud-computing",
@@ -25,7 +25,18 @@ def fetch_page(url: str) -> str:
     return html_to_text(response.text)
 
 
-def ask(question: str, models: Models, fetch: Callable[[str], str] = fetch_page) -> str:
+def chunks(fetch: Callable[[str], str] = fetch_page) -> list[Chunk]:
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    chunks = [Chunk(text, url) for url in URLS for text in splitter.split_text(fetch(url))]
-    return answer_from(question, chunks, models, WEB_PROMPT, k=3)
+    return [Chunk(text, url) for url in URLS for text in splitter.split_text(fetch(url))]
+
+
+def store(models: Models, fetch: Callable[[str], str] = fetch_page) -> VectorStore:
+    return store_from(models, chunks(fetch))
+
+
+def answer(question: str, source: VectorStore, models: Models) -> str:
+    return answer_with_context(question, source, models, WEB_PROMPT, k=3)[0]
+
+
+def ask(question: str, models: Models, fetch: Callable[[str], str] = fetch_page) -> str:
+    return answer(question, store(models, fetch), models)

@@ -12,12 +12,6 @@ def test_help_lists_ask_and_eval():
     assert "eval" in result.output
 
 
-def test_eval_says_not_built_yet():
-    result = runner.invoke(app, ["eval"])
-    assert result.exit_code == 0
-    assert "not built yet" in result.output
-
-
 def _stub_ask(monkeypatch, calls):
     def fake(*args, **kwargs):
         calls.append((args, kwargs))
@@ -123,3 +117,196 @@ def test_ask_web_and_sql_ignore_missing_pdf(monkeypatch, tmp_path):
         result = runner.invoke(app, ["ask", "hi", "--source", source, "--pdf", str(missing)])
         assert result.exit_code == 0
     assert len(calls) == 2
+
+
+def _chat_web(monkeypatch, text):
+    import rag_course
+    from rag_course import web
+    from fakes import fake_models, saved_page
+
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_models())
+    monkeypatch.setattr(web, "fetch_page", saved_page)
+    return runner.invoke(app, ["chat", "--source", "web"], input=text)
+
+
+def test_chat_answers_three_questions_in_order_then_exits(monkeypatch):
+    result = _chat_web(
+        monkeypatch,
+        "What is cloud computing?\nWhat is data science?\nWho won the FIFA World Cup in 1998?\nexit\nWhat is cloud computing?\n",
+    )
+    assert result.exit_code == 0
+    lines = result.output.strip().splitlines()
+    assert len(lines) == 3
+    assert "cloud computing" in lines[0].lower()
+    assert "data science" in lines[1].lower()
+    assert "don't know" in lines[2].lower()
+
+
+def test_chat_empty_line_gets_hint_and_no_bedrock_call(monkeypatch):
+    import rag_course
+    from rag_course import web
+    from fakes import saved_page
+
+    def no_bedrock(settings):
+        raise AssertionError("Bedrock must not be touched")
+
+    monkeypatch.setattr(rag_course, "bedrock_models", no_bedrock)
+    monkeypatch.setattr(web, "fetch_page", saved_page)
+    result = runner.invoke(app, ["chat", "--source", "web"], input="\n  \nexit\n")
+    assert result.exit_code == 0
+    assert result.output.count("Type a question") == 2
+
+
+def test_chat_end_of_input_exits_zero(monkeypatch):
+    result = _chat_web(monkeypatch, "")
+    assert result.exit_code == 0
+
+
+def test_chat_loads_the_source_once_per_session(monkeypatch):
+    from rag_course import web
+
+    loads = []
+    real = web.chunks
+    monkeypatch.setattr(web, "chunks", lambda fetch=web.fetch_page: loads.append(1) or real(fetch))
+    result = _chat_web(monkeypatch, "What is cloud computing?\nWhat is data science?\nWhat is cloud computing?\n")
+    assert result.exit_code == 0
+    assert len(result.output.strip().splitlines()) == 3
+    assert len(loads) == 1
+
+
+def test_chat_pdf_missing_path_errors_before_loading(monkeypatch, tmp_path):
+    result = runner.invoke(app, ["chat", "--source", "pdf", "--pdf", str(tmp_path / "nope.pdf")])
+    assert result.exit_code == 2
+    assert "Error: PDF not found" in result.stderr
+
+
+def test_chat_on_a_source_with_no_text_exits_2_like_rag_ask(monkeypatch):
+    import rag_course
+    from rag_course import web
+    from fakes import fake_models
+
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_models())
+    monkeypatch.setattr(web, "fetch_page", lambda url: "   \n")
+    result = runner.invoke(app, ["chat", "--source", "web"], input="What is cloud computing?\nWhat is data science?\n")
+    assert result.exit_code == 2, result.output
+    assert result.stderr.strip() == "Error: the source has no text to search"
+    assert result.stdout == ""
+
+
+def test_chat_pdf_answers_match_rag_ask(monkeypatch):
+    import rag_course
+    from fakes import fake_models
+
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_models())
+    questions = ["What are SDKs and APIs?", "Who won the FIFA World Cup in 1998?"]
+    asked = [runner.invoke(app, ["ask", "--source", "pdf", q]).output.strip() for q in questions]
+    result = runner.invoke(app, ["chat", "--source", "pdf"], input="\n".join(questions) + "\nexit\n")
+    assert result.exit_code == 0, result.output
+    assert result.output.strip().splitlines() == asked
+    assert "SDKs and APIs" in asked[0]
+
+
+def test_chat_sql_answers_match_rag_ask(monkeypatch):
+    from pathlib import Path
+
+    import rag_course
+    from fakes import fake_sql_models
+
+    sql_for = {
+        "How many customers are there?": "SELECT COUNT(*) FROM Customer",
+        "How many artists are there?": "SELECT COUNT(*) FROM Artist",
+    }
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_sql_models(sql_for))
+    db = str(Path(__file__).parents[1] / "data" / "Chinook.db")
+    result = runner.invoke(app, ["chat", "--source", "sql", "--db", db], input="\n".join(sql_for) + "\n")
+    assert result.exit_code == 0, result.output
+    assert result.output.strip().splitlines() == ["Rows: [(59,)]", "Rows: [(275,)]"]
+    assert [runner.invoke(app, ["ask", "--source", "sql", "--db", db, q]).output.strip() for q in sql_for] == [
+        "Rows: [(59,)]",
+        "Rows: [(275,)]",
+    ]
+
+
+def test_chat_retrieves_with_the_same_k_as_rag_ask(monkeypatch):
+    from rag_course import core, web
+
+    ks = []
+    real = core.VectorStore.search
+    monkeypatch.setattr(core.VectorStore, "search", lambda self, q, k: ks.append(k) or real(self, q, k))
+    _chat_web(monkeypatch, "What is cloud computing?\nexit\n")
+    asked = ks[:]
+    ks.clear()
+    import rag_course
+    from fakes import fake_models, saved_page
+
+    rag_course.ask("web", "What is cloud computing?", models=fake_models(), fetch=saved_page)
+    assert asked == ks == [3]
+
+
+def test_chat_pdf_loads_once_and_retrieves_with_the_same_k_as_rag_ask(monkeypatch):
+    import rag_course
+    from rag_course import core
+    from rag_course import pdf as pdf_pipeline
+    from fakes import fake_models
+
+    loads, ks = [], []
+    real_chunks, real_search = pdf_pipeline.chunks, core.VectorStore.search
+    monkeypatch.setattr(pdf_pipeline, "chunks", lambda *a: loads.append(1) or real_chunks(*a))
+    monkeypatch.setattr(core.VectorStore, "search", lambda self, q, k: ks.append(k) or real_search(self, q, k))
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: fake_models())
+    result = runner.invoke(app, ["chat", "--source", "pdf"], input="What are SDKs and APIs?\nWhat is an API?\nexit\n")
+    assert result.exit_code == 0, result.output
+    assert len(result.output.strip().splitlines()) == 2
+    assert len(loads) == 1
+    chat_ks = ks[:]
+    ks.clear()
+    rag_course.ask("pdf", "What are SDKs and APIs?", models=fake_models())
+    assert chat_ks == [ks[0], ks[0]] == [3, 3]
+
+
+class _NoAwsAccess:
+    def embed(self, texts):
+        from botocore.exceptions import NoCredentialsError
+
+        raise NoCredentialsError()
+
+    def answer(self, prompt):
+        return self.embed([prompt])
+
+
+def _without_aws_access(monkeypatch):
+    import rag_course
+    from rag_course import evaluate, web
+    from rag_course.core import Models
+    from fakes import saved_page
+
+    models = Models(answer=_NoAwsAccess(), embed=_NoAwsAccess())
+    monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: models)
+    monkeypatch.setattr(evaluate, "bedrock_models", lambda settings: models)
+    monkeypatch.setattr(web, "fetch_page", saved_page)
+
+
+def _assert_one_plain_line(result):
+    assert result.exit_code == 2, result.output
+    lines = result.stderr.strip().splitlines()
+    assert len(lines) == 1
+    assert "aws configure" in lines[0]
+    assert "Traceback" not in result.output
+    assert "NoCredentialsError" not in result.output
+
+
+def test_ask_without_aws_access_prints_one_plain_line_for_every_source(monkeypatch):
+    _without_aws_access(monkeypatch)
+    for source in ("web", "pdf", "sql"):
+        _assert_one_plain_line(runner.invoke(app, ["ask", "What is cloud computing?", "--source", source]))
+
+
+def test_chat_without_aws_access_prints_one_plain_line(monkeypatch):
+    _without_aws_access(monkeypatch)
+    for source in ("web", "pdf", "sql"):
+        _assert_one_plain_line(runner.invoke(app, ["chat", "--source", source], input="What is cloud computing?\n"))
+
+
+def test_eval_without_aws_access_prints_one_plain_line(monkeypatch, tmp_path):
+    _without_aws_access(monkeypatch)
+    _assert_one_plain_line(runner.invoke(app, ["eval", "--out", str(tmp_path)]))
