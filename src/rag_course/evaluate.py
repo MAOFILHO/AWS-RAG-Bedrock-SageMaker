@@ -17,6 +17,7 @@ from rag_course.core import (
     WEB_PROMPT,
     Models,
     Settings,
+    SourceError,
     VectorStore,
     answer_with_context,
     bedrock_models,
@@ -82,8 +83,18 @@ class Scores:
     cases: tuple[Case, ...]
 
 
+GOLDEN_SETS = ("web", "pdf", "generation", "out_of_scope", "sql", "destructive_sql")
+
+
 def golden(name: str, golden_dir: Path = GOLDEN) -> list[dict]:
-    return json.loads((golden_dir / f"{name}.json").read_text())
+    path = golden_dir / f"{name}.json"
+    try:
+        cases = json.loads(path.read_text())
+    except (FileNotFoundError, ValueError):
+        cases = []
+    if not cases:
+        raise SourceError(f"no golden cases found in {path}")
+    return cases
 
 
 def judge(model, question: str, context: str, answer: str) -> dict:
@@ -117,6 +128,8 @@ def run_eval(
     db: Path = sql.DEFAULT_DB,
     clock: Callable[[], float] = time.perf_counter,
 ) -> Scores:
+    for name in GOLDEN_SETS:
+        golden(name, golden_dir)  # fail on an empty golden set before any model or network call
     models = models or bedrock_models(Settings.from_env())
     stores = {
         "web": VectorStore(models.embed, web.chunks(fetch or web.fetch_page)),

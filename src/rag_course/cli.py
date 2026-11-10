@@ -116,8 +116,12 @@ def eval_(
     if not re.fullmatch(r"[A-Za-z0-9_-]+", mode):
         typer.echo("Error: --mode may only hold letters, digits, - and _", err=True)
         raise typer.Exit(code=2)
-    with _aws_access():
-        scores = evaluation.run_eval()
+    try:
+        with _aws_access():
+            scores = evaluation.run_eval()
+    except SourceError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=2)
     typer.echo(evaluation.format_scores(scores))
     reports = report.write_reports(scores, mode, out, update_baseline)
     typer.echo(f"reports: {reports.csv} {reports.html}")
