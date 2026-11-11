@@ -205,3 +205,38 @@ def test_upload_folder_is_ignored_by_git():
     root = service.DEFAULT_UPLOADS.parent
     check = subprocess.run(["git", "check-ignore", "-q", f"{service.DEFAULT_UPLOADS.name}/x.pdf"], cwd=root)
     assert check.returncode == 0
+
+
+def test_service_ask_without_aws_access_names_aws_configure():
+    from botocore.exceptions import NoCredentialsError
+
+    class NoAccess:
+        def embed(self, texts):
+            raise NoCredentialsError()
+
+        def answer(self, prompt):
+            raise NoCredentialsError()
+
+    from rag_course.core import Models
+
+    with TestClient(create_app(Models(answer=NoAccess(), embed=NoAccess()))) as client:
+        reply = client.post("/ask", json={"question": QUESTION, "source": "pdf"})
+    assert reply.status_code == 503
+    assert "aws configure" in reply.json()["error"]
+    assert "NoCredentialsError" not in reply.text
+
+
+def test_service_ask_with_a_missing_profile_names_it(monkeypatch):
+    from botocore.exceptions import ProfileNotFound
+    from rag_course.core import Models
+
+    class Missing:
+        def embed(self, texts):
+            raise ProfileNotFound(profile="k21")
+
+        answer = embed
+
+    with TestClient(create_app(Models(answer=Missing(), embed=Missing()))) as client:
+        reply = client.post("/ask", json={"question": QUESTION, "source": "pdf"})
+    assert reply.status_code == 503
+    assert "'k21'" in reply.json()["error"]

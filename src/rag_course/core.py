@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from typing import Callable, ContextManager, Mapping, Protocol
 
 import numpy as np
+from botocore.exceptions import NoCredentialsError, NoRegionError, PartialCredentialsError, ProfileNotFound
 
 DONT_KNOW = "I don't know based on the provided documents."
 
@@ -150,6 +151,16 @@ def bedrock_models(settings: Settings) -> Models:
         answer=BedrockAnswerModel(client, settings.model_id),
         embed=BedrockEmbeddingModel(client, settings.embed_model_id),
     )
+
+
+def aws_access_message(error: BaseException) -> str | None:
+    """The one plain line for a missing AWS login, region or profile; None for any other error."""
+    if isinstance(error, (NoCredentialsError, PartialCredentialsError, NoRegionError)):
+        return "Error: no AWS access found. Run `aws configure`, enable Bedrock model access, then try again."
+    if isinstance(error, ProfileNotFound):
+        profile = error.kwargs["profile"]
+        return f"Error: AWS profile {profile!r} not found. Run `aws configure --profile {profile}` or fix AWS_PROFILE."
+    return None
 
 
 class SourceError(Exception):
