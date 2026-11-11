@@ -1,0 +1,7 @@
+== AC5 across a restart (reviewer R1)
+{"name":"a.pdf","uploaded":true}
+   before restart: 4a854a743d1d4856a0ca9a8a16068c48.pdf 
+   after restart active: {"name":"k21.pdf","uploaded":false}
+   after restart uploads/: 4a854a743d1d4856a0ca9a8a16068c48.pdf 
+{"name":"b.pdf","uploaded":true}
+   after b.pdf uploads/: 8e8d085395684900bbcc3ec8fbdd9e52.pdf  (count 1)
