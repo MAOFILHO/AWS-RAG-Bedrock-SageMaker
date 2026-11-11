@@ -1,20 +1,22 @@
 """Web service: lists the Sources and answers a question with the chosen Source's Pipeline.
 
 The PDF opens at start-up; the web and SQL Sources open on first use and stay open.
+The PDF Source answers from the active PDF: the default one, or the last one uploaded.
 
 Run it with `uv run uvicorn rag_course.service:create_app --factory --port 8000`.
 """
 
+import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Callable
+from typing import Annotated, Callable
 
-from fastapi import FastAPI
+from fastapi import Body, FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from rag_course import pdf, sql, web
-from rag_course.core import Models, Settings, bedrock_models
+from rag_course.core import Models, Settings, SourceError, bedrock_models
 
 
 SOURCES = [
@@ -39,7 +41,9 @@ def create_app(
         app.state.models = models or bedrock_models(Settings.from_env())
         m = app.state.models
         pdf_store = pdf.store(m)
-        app.state.answerers = {"pdf": lambda question: pdf.answer(question, pdf_store, m)}
+        app.state.default_pdf = lambda question: pdf.answer(question, pdf_store, m)
+        app.state.answerers = {"pdf": app.state.default_pdf}
+        app.state.pdf_name = pdf.DEFAULT_PDF.name
         yield
 
     app = FastAPI(lifespan=lifespan)
@@ -57,6 +61,33 @@ def create_app(
     @app.get("/sources")
     def sources():
         return SOURCES
+
+    def active_pdf():
+        return {"name": app.state.pdf_name, "uploaded": app.state.answerers["pdf"] is not app.state.default_pdf}
+
+    @app.get("/pdf")
+    def get_pdf():
+        return active_pdf()
+
+    @app.put("/pdf")
+    def put_pdf(name: str, content: Annotated[bytes, Body(media_type="application/pdf")]):
+        m = app.state.models
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "upload.pdf"
+            path.write_bytes(content)
+            try:
+                store = pdf.store(m, path)
+            except SourceError:
+                return JSONResponse({"error": "That file is not a readable PDF."}, status_code=400)
+        app.state.answerers["pdf"] = lambda question: pdf.answer(question, store, m)
+        app.state.pdf_name = name
+        return active_pdf()
+
+    @app.delete("/pdf")
+    def reset_pdf():
+        app.state.answerers["pdf"] = app.state.default_pdf
+        app.state.pdf_name = pdf.DEFAULT_PDF.name
+        return active_pdf()
 
     @app.post("/ask")
     def ask(body: Question):

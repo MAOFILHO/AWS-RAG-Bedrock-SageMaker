@@ -168,3 +168,47 @@ test("passes the chosen Source to the service and rejects a Source that is not t
   expect(bad.status).toBe(400);
   expect(await bad.json()).toEqual({ error: "Pick a Source first." });
 });
+
+test("sends an uploaded PDF to the service with its name and returns the active PDF", async () => {
+  const seen = [];
+  const service = await fakeService((req, res) => {
+    const parts = [];
+    req.on("data", (chunk) => parts.push(chunk));
+    req.on("end", () => {
+      seen.push({ method: req.method, url: req.url, body: Buffer.concat(parts) });
+      res.end(JSON.stringify({ name: "my file.pdf", uploaded: true }));
+    });
+  });
+  const api = await listen(createApi(service));
+  const bytes = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x00, 0xff, 0xfe]);
+  const reply = await fetch(`${api}/api/pdf?name=${encodeURIComponent("my file.pdf")}`, { method: "PUT", headers: { "content-type": "application/pdf" }, body: bytes });
+  expect(reply.status).toBe(200);
+  expect(await reply.json()).toEqual({ name: "my file.pdf", uploaded: true });
+  expect(seen).toHaveLength(1);
+  expect(seen[0].method).toBe("PUT");
+  expect(seen[0].url).toBe(`/pdf?name=${encodeURIComponent("my file.pdf")}`);
+  expect(seen[0].body.equals(bytes)).toBe(true);
+});
+
+test("passes the active PDF and the switch back through, and passes a not-a-PDF error on", async () => {
+  const service = await fakeService((req, res) => {
+    if (req.method === "PUT") return res.writeHead(400).end(JSON.stringify({ error: "That file is not a readable PDF." }));
+    res.end(JSON.stringify({ name: "invoice.pdf", uploaded: false, method: req.method }));
+  });
+  const api = await listen(createApi(service));
+  expect(await (await fetch(`${api}/api/pdf`)).json()).toEqual({ name: "invoice.pdf", uploaded: false, method: "GET" });
+  expect(await (await fetch(`${api}/api/pdf`, { method: "DELETE" })).json()).toEqual({ name: "invoice.pdf", uploaded: false, method: "DELETE" });
+  const bad = await fetch(`${api}/api/pdf?name=a.pdf`, { method: "PUT", body: "nope" });
+  expect(bad.status).toBe(400);
+  expect(await bad.json()).toEqual({ error: "That file is not a readable PDF." });
+});
+
+test("returns one plain error for the PDF routes when the Python service is down", async () => {
+  const api = await listen(createApi("http://127.0.0.1:1"));
+  for (const [method, path] of [["GET", ""], ["DELETE", ""], ["PUT", "?name=a.pdf"]]) {
+    const reply = await fetch(`${api}/api/pdf${path}`, { method, body: method === "PUT" ? "x" : undefined });
+    expect(reply.status).toBe(502);
+    expect(await reply.json()).toEqual({ error: "The answer service is not available. Try again." });
+  }
+  expect((await fetch(`${api}/api/pdf?name=`, { method: "PUT", body: "x" })).status).toBe(400);
+});

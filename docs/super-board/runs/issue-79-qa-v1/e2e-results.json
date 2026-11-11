@@ -1,0 +1,59 @@
+[
+  {
+    "name": "AC3 default PDF named as active, no switch-back button",
+    "ok": true,
+    "detail": "Active PDF: invoice.pdf (default)"
+  },
+  {
+    "name": "AC2 progress state shows file name",
+    "ok": true,
+    "detail": "Uploading kiwis.pdf..."
+  },
+  {
+    "name": "AC2 ready state shows file name",
+    "ok": true,
+    "detail": "kiwis.pdf is ready"
+  },
+  {
+    "name": "AC3 uploaded PDF named as active",
+    "ok": true,
+    "detail": "Active PDF: kiwis.pdf (uploaded)"
+  },
+  {
+    "name": "AC1 uploaded PDF answers its question",
+    "ok": true,
+    "detail": "Kiwis are flightless birds from New Zealand."
+  },
+  {
+    "name": "AC3 switch-back button returns to default and hides",
+    "ok": true,
+    "detail": "invoice.pdf (default)"
+  },
+  {
+    "name": "AC4 after switch back, kiwi question no longer answered from the upload",
+    "ok": true,
+    "detail": "I do not have sufficient information in the provided document."
+  },
+  {
+    "name": "AC4 after switch back, default PDF answers its question",
+    "ok": true,
+    "detail": "- SDKs and APIs: Information about the software development kits (SDKs) and application"
+  },
+  {
+    "name": "happy path: no console errors, page errors or 5xx",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "bad file shows one line and keeps default active",
+    "ok": true,
+    "detail": "That file is not a readable PDF."
+  },
+  {
+    "name": "bad-file path: only the expected 400, no page errors or 5xx",
+    "ok": true,
+    "detail": [
+      "console: Failed to load resource: the server responded with a status of 400 (Bad Request)"
+    ]
+  }
+]
