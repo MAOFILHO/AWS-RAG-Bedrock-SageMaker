@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-import re
 import shutil
 from pathlib import Path
 
@@ -11,6 +10,7 @@ import pytest
 import rag_course
 from rag_course import core, pdf, sql
 from rag_course.core import DONT_KNOW, NOT_ENOUGH_INFO, Settings
+from rag_course.evaluate import holds
 from fakes import echo_models, fake_models, fake_sql_models, saved_page
 
 CHINOOK = Path(__file__).parents[1] / "data" / "Chinook.db"
@@ -30,33 +30,22 @@ def ask(pipeline: str, case: dict, models) -> str:
     return rag_course.ask(pipeline, case["question"], models=models, fetch=saved_page, db=CHINOOK)
 
 
-def missing(answer: str, expect: list) -> list:
-    plain = re.sub(r"(?<=\d),(?=\d{3})", "", answer).lower()
-    return [item for item in expect if not found(item, plain)]
-
-
-def found(item, plain: str) -> bool:
-    if isinstance(item, int):
-        return re.search(rf"(?<!\d){item}(?!\d)", plain) is not None
-    return str(item).lower() in plain
-
-
 @pytest.mark.parametrize(
-    ("answer", "expect", "left"),
+    ("answer", "expect", "ok"),
     [
-        ("1,297 tracks", [1297], []),
-        ("1297 tracks", [1297], []),
-        ("12,970 tracks", [1297], [1297]),
-        ("Rock", ["Rock"], []),
+        ("1,297 tracks", [1297], True),
+        ("1297 tracks", [1297], True),
+        ("12,970 tracks", [1297], False),
+        ("Rock", ["Rock"], True),
     ],
 )
-def test_missing_ignores_thousands_separators(answer, expect, left):
-    assert missing(answer, expect) == left
+def test_holds_ignores_thousands_separators(answer, expect, ok):
+    assert holds(answer, expect) is ok
 
 
 def test_employee_golden_accepts_an_answer_that_names_only_the_employee():
     case = next(c for c in golden("sql") if c["question"] == "Which employee supports the most customers?")
-    assert missing("Jane Peacock supports the most customers.", case["expect"]) == []
+    assert holds("Jane Peacock supports the most customers.", case["expect"])
 
 
 @pytest.mark.parametrize(("name", "count"), COUNTS.items())
@@ -67,20 +56,20 @@ def test_golden_file_holds_every_case(name, count):
 @cases("web")
 def test_web_golden_is_answered_from_its_saved_page(case):
     answer = ask("web", case, echo_models())
-    assert not missing(answer, case["expect"])
-    assert not missing(saved_page(case["source"]), case["expect"])
+    assert holds(answer, case["expect"])
+    assert holds(saved_page(case["source"]), case["expect"])
 
 
 @cases("pdf")
 def test_pdf_golden_is_answered_from_its_page(case):
     answer = ask("pdf", case, echo_models())
-    assert not missing(answer, case["expect"])
-    assert not missing(pdf.load_pdf(pdf.DEFAULT_PDF)[case["page"] - 1], case["expect"])
+    assert holds(answer, case["expect"])
+    assert holds(pdf.load_pdf(pdf.DEFAULT_PDF)[case["page"] - 1], case["expect"])
 
 
 @cases("generation")
 def test_generation_golden_answer_holds_its_key_facts(case):
-    assert not missing(ask(case["pipeline"], case, echo_models()), case["expect"])
+    assert holds(ask(case["pipeline"], case, echo_models()), case["expect"])
 
 
 @cases("out_of_scope")
@@ -91,7 +80,7 @@ def test_out_of_scope_golden_gets_the_fixed_sentence(case):
 @cases("sql")
 def test_sql_golden_is_answered_from_chinook(case):
     answer = ask("sql", case, fake_sql_models({case["question"]: case["sql"]}))
-    assert not missing(answer, case["expect"])
+    assert holds(answer, case["expect"])
 
 
 @cases("destructive_sql")
@@ -107,7 +96,7 @@ def test_destructive_golden_is_refused_and_the_database_is_unchanged(case, tmp_p
 @cases("generation")
 def test_live_generation_golden(case):
     models = core.bedrock_models(Settings.from_env())
-    assert not missing(rag_course.ask(case["pipeline"], case["question"], models=models), case["expect"])
+    assert holds(rag_course.ask(case["pipeline"], case["question"], models=models), case["expect"])
 
 
 @pytest.mark.live
@@ -121,4 +110,4 @@ def test_live_out_of_scope_golden(case):
 @cases("sql")
 def test_live_sql_golden(case):
     models = core.bedrock_models(Settings.from_env())
-    assert not missing(rag_course.ask("sql", case["question"], models=models, db=CHINOOK), case["expect"])
+    assert holds(rag_course.ask("sql", case["question"], models=models, db=CHINOOK), case["expect"])
