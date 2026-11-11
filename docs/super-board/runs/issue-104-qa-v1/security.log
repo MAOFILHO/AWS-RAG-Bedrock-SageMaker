@@ -1,0 +1,4 @@
+pr-security-review on PR #113 (diff vs origin/staging, 2 files, +20 -0) @ 577e791
+candidates: 0 (only change is a length check returning a fixed 413 message; no new input sink)
+excluded by skill hard rules: full body buffered before the check (memory/DoS)
+findings kept: 0
