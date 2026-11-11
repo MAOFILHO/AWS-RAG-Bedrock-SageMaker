@@ -1,0 +1,6 @@
+$ AWS_PROFILE='my profile' rag ask 'What is cloud computing?' --source web
+Error: AWS profile 'my profile' not found. Run `aws configure --profile 'my profile'` or fix AWS_PROFILE.
+exit=2
+$ AWS_PROFILE='my profile' rag eval --out /private/tmp/claude-501/-Users-marco-K21-AWS-RAG-Bedrock-SageMaker/568cd568-b81a-430d-8fed-946719d8f7ed/scratchpad/evalout
+Error: AWS profile 'my profile' not found. Run `aws configure --profile 'my profile'` or fix AWS_PROFILE.
+exit=2
