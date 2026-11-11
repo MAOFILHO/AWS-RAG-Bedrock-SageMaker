@@ -39,7 +39,10 @@ export default function App() {
 
   return (
     <main>
-      <h1>Ask a Source</h1>
+      <header className="brand">
+        <span className="wordmark">Contoso</span>
+        <h1>Ask a Source</h1>
+      </header>
       <fieldset>
         <legend>Source</legend>
         {sources.map((item) => (
@@ -50,9 +53,10 @@ export default function App() {
         ))}
       </fieldset>
       <form onSubmit={ask}>
-        <input aria-label="Question" value={question} onChange={(e) => setQuestion(e.target.value)} />
+        <input type="text" aria-label="Question" value={question} onChange={(e) => setQuestion(e.target.value)} />
+        <button type="submit">Ask</button>
       </form>
-      {answer && <p>{answer}</p>}
+      <div aria-live="polite">{answer && <p className="answer">{answer}</p>}</div>
       {error && <p role="alert">{error}</p>}
     </main>
   );

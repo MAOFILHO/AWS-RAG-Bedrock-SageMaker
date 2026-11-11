@@ -64,3 +64,13 @@ test("sends the question to the chosen Source", async () => {
     expect.objectContaining({ body: JSON.stringify({ question: "How many customers?", source: "sql" }) }),
   );
 });
+
+test("every control has an accessible name", async () => {
+  vi.stubGlobal("fetch", serve(() => reply(200, { answer: "" })));
+  render(<App />);
+  await screen.findAllByRole("radio");
+  for (const control of [...screen.getAllByRole("radio"), screen.getByRole("textbox"), screen.getByRole("button")]) {
+    expect(control.getAttribute("aria-label") || control.textContent || control.closest("label")?.textContent).toBeTruthy();
+  }
+  expect(screen.getByRole("button", { name: "Ask" })).toBeTruthy();
+});
