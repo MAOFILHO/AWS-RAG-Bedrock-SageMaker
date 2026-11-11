@@ -1,0 +1,16 @@
+# issue-105 QA v3 mutation checks: one line added to body {} in web/src/theme.css, then npx vitest run src/theme.test.ts
+# orig = theme.test.ts at 110b857 · new = theme.test.ts after QA v3
+want=red · orig=red new=red · body { color: tomato; }
+want=red · orig=green new=red · body { background-image: linear-gradient(red, var(--bg)); }
+want=red · orig=green new=red · body { border-image: linear-gradient(red, var(--bg)) 1; }
+want=red · orig=green new=red · body { -webkit-text-fill-color: red; }
+want=red · orig=red new=red · body { outline: 2px solid Canvas; }
+want=red · orig=red new=red · body { color: oklch(0.5 0.1 200); }
+want=red · orig=red new=red · body { color: var(--nope, red); }
+want=red · orig=red new=red · body { text-decoration: underline wavy Red; }
+want=green · orig=green new=green · body { border-collapse: collapse; }
+want=green · orig=red new=green · body { box-shadow: inset 0 0 0 1px var(--border); }
+want=green · orig=red new=green · body { border: thin groove var(--border); }
+want=green · orig=red new=green · body { color-scheme: light dark; }
+want=green · orig=red new=green · body { background: linear-gradient(45deg, var(--bg), var(--surface)); }
+# App.tsx (new): drop the 'Upload a PDF' label text -> label test red; move it outside the <label> -> label test red

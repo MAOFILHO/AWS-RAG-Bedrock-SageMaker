@@ -239,12 +239,22 @@ test("the PDF panel shows only while the PDF Source is picked", async () => {
   expect(screen.queryByText(/^Active PDF/)).toBeNull();
 });
 
+const accessibleName = (control: Element) => {
+  const labelledby = control.getAttribute("aria-labelledby")?.split(/\s+/).map((id) => document.getElementById(id)?.textContent ?? "").join(" ");
+  const labels = "labels" in control ? [...(control as HTMLInputElement).labels!].map((label) => label.textContent) : [];
+  return (control.getAttribute("aria-label") || labelledby || labels.join(" ") || (control.tagName === "BUTTON" ? control.textContent : "") || "").trim();
+};
+
 test("every control has an accessible name", async () => {
   vi.stubGlobal("fetch", serve(() => reply(200, { answer: "" })));
-  render(<App />);
+  const { container } = render(<App />);
   await screen.findAllByRole("radio");
-  for (const control of [...screen.getAllByRole("radio"), screen.getByRole("textbox"), ...screen.getAllByRole("button")]) {
-    expect(control.getAttribute("aria-label") || control.textContent || control.closest("label")?.textContent).toBeTruthy();
+  await screen.findByText("Active PDF: invoice.pdf (default)");
+  const controls = [...container.querySelectorAll("input, textarea, select, button")];
+  expect(controls.some((control) => control.getAttribute("type") === "file")).toBe(true);
+  for (const control of controls) {
+    expect(accessibleName(control), control.outerHTML).not.toBe("");
   }
+  expect(accessibleName(screen.getByLabelText("Upload a PDF"))).toBe("Upload a PDF");
   expect(screen.getByRole("button", { name: "Send" })).toBeTruthy();
 });
