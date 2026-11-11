@@ -6,14 +6,14 @@ from importlib.metadata import version as package_version
 from pathlib import Path
 
 import typer
-from botocore.exceptions import NoCredentialsError, NoRegionError, PartialCredentialsError
+from botocore.exceptions import NoCredentialsError, NoRegionError, PartialCredentialsError, ProfileNotFound
 
 import rag_course
 from rag_course import pdf as pdf_pipeline
 from rag_course import evaluate as evaluation
 from rag_course import report
 from rag_course import sql
-from rag_course.core import SourceError
+from rag_course.core import SourceError, aws_access_message
 
 app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
 
@@ -35,11 +35,11 @@ def main(
 
 @contextmanager
 def _aws_access():
-    """Turn a missing AWS login or region into one plain line and exit 2."""
+    """Turn a missing AWS login, region or profile into one plain line and exit 2."""
     try:
         yield
-    except (NoCredentialsError, PartialCredentialsError, NoRegionError):
-        typer.echo("Error: no AWS access found. Run `aws configure`, enable Bedrock model access, then try again.", err=True)
+    except (NoCredentialsError, PartialCredentialsError, NoRegionError, ProfileNotFound) as error:
+        typer.echo(aws_access_message(error), err=True)
         raise typer.Exit(code=2)
 
 
@@ -116,8 +116,12 @@ def eval_(
     if not re.fullmatch(r"[A-Za-z0-9_-]+", mode):
         typer.echo("Error: --mode may only hold letters, digits, - and _", err=True)
         raise typer.Exit(code=2)
-    with _aws_access():
-        scores = evaluation.run_eval()
+    try:
+        with _aws_access():
+            scores = evaluation.run_eval()
+    except SourceError as error:
+        typer.echo(f"Error: {error}", err=True)
+        raise typer.Exit(code=2)
     typer.echo(evaluation.format_scores(scores))
     reports = report.write_reports(scores, mode, out, update_baseline)
     typer.echo(f"reports: {reports.csv} {reports.html}")
