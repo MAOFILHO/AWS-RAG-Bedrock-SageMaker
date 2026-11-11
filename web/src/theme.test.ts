@@ -51,9 +51,9 @@ const strayColors = (source: string) =>
     .filter(({ property }) => COLOR_PROPERTY.test(property) && !property.startsWith("--"))
     .flatMap(({ property, value }) =>
       value
-        .replace(/var\([^)]*\)/g, " ")
+        .replace(/var\(\s*--[\w-]+\s*,?/g, " ")
         .replace(/[\d.]+(?:px|rem|em|%)?/g, " ")
-        .split(/[\s,]+/)
+        .split(/[\s,()]+/)
         .filter((word) => word && !NEUTRAL.has(word.toLowerCase()))
         .map((word) => `${property}: ${word}`),
     );
@@ -62,6 +62,8 @@ test("the color check catches named and oklch() colors", () => {
   expect(strayColors("a { color: red; }")).toEqual(["color: red"]);
   expect(strayColors("a { color: red }")).toEqual(["color: red"]);
   expect(strayColors("a { background: oklch(0.5 0.1 200); }")).not.toEqual([]);
+  expect(strayColors("a { color: var(--x, red); }")).toEqual(["color: red"]);
+  expect(strayColors("a { color: var(--x, var(--y)); }")).toEqual([]);
   expect(strayColors("a { border: 1px solid var(--border); background: transparent; }")).toEqual([]);
   expect(COLOR_FUNCTIONS.test("color: oklch(0.5 0.1 200)")).toBe(true);
 });
