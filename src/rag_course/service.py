@@ -47,7 +47,6 @@ def create_app(
         app.state.default_pdf = lambda question: pdf.answer(question, pdf_store, m)
         app.state.answerers = {"pdf": app.state.default_pdf}
         app.state.pdf_name = pdf.DEFAULT_PDF.name
-        app.state.pdf_file = None
         yield
 
     app = FastAPI(lifespan=lifespan)
@@ -73,10 +72,11 @@ def create_app(
     def get_pdf():
         return active_pdf()
 
-    def forget_upload():
-        if app.state.pdf_file:
-            app.state.pdf_file.unlink(missing_ok=True)
-        app.state.pdf_file = None
+    def clear_uploads(keep: Path | None = None):
+        # Sweeps the folder, not one remembered path, so a file from an earlier run goes too.
+        for old in uploads.glob("*.pdf"):
+            if old != keep:
+                old.unlink(missing_ok=True)
 
     @app.put("/pdf")
     def put_pdf(name: str, content: Annotated[bytes, Body(media_type="application/pdf")]):
@@ -87,21 +87,21 @@ def create_app(
         path.write_bytes(content)
         try:
             store = pdf.store(m, path)
-        except pdf.NoTextError:
-            path.unlink()
-            return JSONResponse({"error": "That PDF has no text to read. A scan will not work."}, status_code=400)
-        except SourceError:
-            path.unlink()
-            return JSONResponse({"error": "That file is not a readable PDF."}, status_code=400)
-        forget_upload()
-        app.state.pdf_file = path
+        except BaseException as error:
+            path.unlink(missing_ok=True)
+            if isinstance(error, pdf.NoTextError):
+                return JSONResponse({"error": "That PDF has no text to read. A scan will not work."}, status_code=400)
+            if isinstance(error, SourceError):
+                return JSONResponse({"error": "That file is not a readable PDF."}, status_code=400)
+            raise
+        clear_uploads(keep=path)
         app.state.answerers["pdf"] = lambda question: pdf.answer(question, store, m)
         app.state.pdf_name = name.replace("\\", "/").rsplit("/", 1)[-1] or "upload.pdf"
         return active_pdf()
 
     @app.delete("/pdf")
     def reset_pdf():
-        forget_upload()
+        clear_uploads()
         app.state.answerers["pdf"] = app.state.default_pdf
         app.state.pdf_name = pdf.DEFAULT_PDF.name
         return active_pdf()

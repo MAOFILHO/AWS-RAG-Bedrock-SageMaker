@@ -168,6 +168,36 @@ def test_service_keeps_only_the_newest_uploaded_file(tmp_path):
     assert list((tmp_path / "uploads").iterdir()) == []
 
 
+def test_service_deletes_an_upload_left_by_an_earlier_run(tmp_path):
+    from fakes import text_pdf
+
+    with TestClient(_app(tmp_path)) as client:
+        _upload(client, "a.pdf")
+    with TestClient(_app(tmp_path)) as client:
+        _upload(client, "b.pdf", text_pdf(["Owls hunt at night."]))
+        assert len(list((tmp_path / "uploads").iterdir())) == 1
+
+
+def test_service_deletes_the_saved_file_when_the_embed_call_fails(tmp_path):
+    from rag_course.core import Models
+    from fakes import FakeAnswerModel, FakeEmbeddings
+
+    class FlakyEmbeddings(FakeEmbeddings):
+        broken = False
+
+        def embed(self, texts):
+            if self.broken:
+                raise RuntimeError("bedrock is down")
+            return super().embed(texts)
+
+    embed = FlakyEmbeddings()
+    app = create_app(Models(answer=FakeAnswerModel(), embed=embed), uploads=tmp_path / "uploads")
+    with TestClient(app, raise_server_exceptions=False) as client:
+        embed.broken = True
+        assert _upload(client).status_code == 500
+    assert list((tmp_path / "uploads").iterdir()) == []
+
+
 def test_upload_folder_is_ignored_by_git():
     import subprocess
     from rag_course import service
