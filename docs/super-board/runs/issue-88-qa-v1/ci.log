@@ -1,0 +1,7 @@
+PR #92 head f45a180 · CI run 42947388860
+  tests  success  (uv sync --frozen, uv run pytest)
+  web    success  (npm ci, npm test: 2 files / 22 tests passed, npm run build: built)
+Proof of a failing web test (throwaway branch issue-88-proof-failing-test, head 1d5a766) · CI run 42947488688
+  tests  success
+  web    failure  (npm test failure, npm run build skipped)
+staging branch protection: "Branch not protected" (404) · rulesets: [] · no required checks
