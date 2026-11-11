@@ -64,3 +64,71 @@ test("sends the question to the chosen Source", async () => {
     expect.objectContaining({ body: JSON.stringify({ question: "How many customers?", source: "sql" }) }),
   );
 });
+
+const ask = (text: string) => userEvent.type(screen.getByRole("textbox", { name: /question/i }), `${text}{Enter}`);
+
+test("keeps three questions and answers in order, each with its Source name", async () => {
+  let n = 0;
+  vi.stubGlobal("fetch", serve(() => reply(200, { answer: `Answer ${++n}` })));
+  render(<App />);
+  await screen.findByRole("radio", { name: /^PDF/ });
+  await ask("One?");
+  await screen.findByText("Answer 1");
+  await userEvent.click(screen.getByRole("radio", { name: /^SQL/ }));
+  await ask("Two?");
+  await screen.findByText("Answer 2");
+  await ask("Three?");
+  await screen.findByText("Answer 3");
+  const items = screen.getAllByRole("listitem").map((item) => item.textContent);
+  expect(items).toEqual(["One?PDFAnswer 1", "Two?SQLAnswer 2", "Three?SQLAnswer 3"]);
+});
+
+test("shows a loading state and turns the send button off while a question runs", async () => {
+  let finish: (value: Response) => void = () => {};
+  vi.stubGlobal("fetch", serve(() => new Promise<Response>((resolve) => (finish = resolve))));
+  render(<App />);
+  await ask("Slow?");
+  expect((await screen.findByRole("status")).textContent).toBe("Thinking...");
+  expect((screen.getByRole("button", { name: "Send" }) as HTMLButtonElement).disabled).toBe(true);
+  finish(new Response(JSON.stringify({ answer: "Done." }), { status: 200 }));
+  await screen.findByText("Done.");
+  expect(screen.queryByRole("status")).toBeNull();
+  expect((screen.getByRole("button", { name: "Send" }) as HTMLButtonElement).disabled).toBe(false);
+});
+
+test("a failed question keeps the thread, shows one line and allows a retry", async () => {
+  let calls = 0;
+  vi.stubGlobal(
+    "fetch",
+    serve(() => (++calls === 2 ? reply(502, { error: "The answer service is not available. Try again." }) : reply(200, { answer: `Answer ${calls}` }))),
+  );
+  render(<App />);
+  await ask("One?");
+  await screen.findByText("Answer 1");
+  await ask("Two?");
+  expect((await screen.findByRole("alert")).textContent).toBe("The answer service is not available. Try again.");
+  expect(screen.getAllByRole("listitem")).toHaveLength(1);
+  expect((screen.getByRole("textbox", { name: /question/i }) as HTMLInputElement).value).toBe("Two?");
+  await userEvent.click(screen.getByRole("button", { name: "Send" }));
+  await screen.findByText("Answer 3");
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(screen.getAllByRole("listitem")).toHaveLength(2);
+});
+
+test("shows a missing AWS access message in plain words", async () => {
+  const message = "No AWS access found. Run `aws configure`, enable Bedrock model access, then try again.";
+  vi.stubGlobal("fetch", serve(() => reply(502, { error: message })));
+  render(<App />);
+  await ask("Hi?");
+  expect((await screen.findByRole("alert")).textContent).toBe(message);
+});
+
+test("the clear button empties the thread", async () => {
+  vi.stubGlobal("fetch", serve(() => reply(200, { answer: "An answer." })));
+  render(<App />);
+  await ask("Hi?");
+  await screen.findByText("An answer.");
+  await userEvent.click(screen.getByRole("button", { name: "Clear" }));
+  expect(screen.queryByText("An answer.")).toBeNull();
+  expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+});

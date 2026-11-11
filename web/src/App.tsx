@@ -1,12 +1,14 @@
 import { FormEvent, useEffect, useState } from "react";
 
 type Source = { id: string; name: string; description: string };
+type Turn = { question: string; source: string; answer: string };
 
 export default function App() {
   const [sources, setSources] = useState<Source[]>([]);
   const [source, setSource] = useState("pdf");
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [thread, setThread] = useState<Turn[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -21,7 +23,8 @@ export default function App() {
 
   async function ask(event: FormEvent) {
     event.preventDefault();
-    setAnswer("");
+    if (loading) return;
+    setLoading(true);
     setError("");
     try {
       const reply = await fetch("/api/ask", {
@@ -30,10 +33,15 @@ export default function App() {
         body: JSON.stringify({ question, source }),
       });
       const body = await reply.json();
-      if (reply.ok) setAnswer(body.answer);
-      else setError(body.error);
+      if (reply.ok) {
+        const name = sources.find((item) => item.id === source)?.name ?? source;
+        setThread((turns) => [...turns, { question, source: name, answer: body.answer }]);
+        setQuestion("");
+      } else setError(body.error);
     } catch {
       setError("Could not reach the server. Try again.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -49,10 +57,21 @@ export default function App() {
           </label>
         ))}
       </fieldset>
+      <ol>
+        {thread.map((turn, index) => (
+          <li key={index}>
+            <p>{turn.question}</p>
+            <small>{turn.source}</small>
+            <p>{turn.answer}</p>
+          </li>
+        ))}
+      </ol>
+      {loading && <p role="status">Thinking...</p>}
       <form onSubmit={ask}>
         <input aria-label="Question" value={question} onChange={(e) => setQuestion(e.target.value)} />
+        <button type="submit" disabled={loading}>Send</button>
+        <button type="button" onClick={() => { setThread([]); setError(""); }}>Clear</button>
       </form>
-      {answer && <p>{answer}</p>}
       {error && <p role="alert">{error}</p>}
     </main>
   );
