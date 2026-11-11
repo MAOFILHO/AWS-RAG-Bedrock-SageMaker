@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
 import App from "./App";
@@ -15,8 +15,13 @@ const SOURCES = [
   { id: "pdf", name: "PDF", description: "The K21 PDF." },
   { id: "sql", name: "SQL", description: "The Chinook database." },
 ];
+const DEFAULT_PDF = { name: "k21.pdf", uploaded: false };
 const serve = (ask: (body: string) => Promise<Response>) =>
-  vi.fn((url: string, init?: RequestInit) => (url === "/api/sources" ? reply(200, SOURCES) : ask(String(init?.body))));
+  vi.fn((url: string, init?: RequestInit) => {
+    if (url === "/api/sources") return reply(200, SOURCES);
+    if (url === "/api/pdf") return reply(200, DEFAULT_PDF);
+    return ask(String(init?.body));
+  });
 
 test("shows the answer after the user types a question and presses Enter", async () => {
   const fetchMock = serve(() => reply(200, { answer: "SDKs wrap APIs." }));
@@ -145,4 +150,91 @@ test("the clear button empties the thread", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Clear" }));
   expect(screen.queryByText("An answer.")).toBeNull();
   expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+});
+
+const pdfFile = (name = "notes.pdf") => new File(["%PDF-1.4"], name, { type: "application/pdf" });
+
+test("names the default PDF as active before any upload and offers no switch back", async () => {
+  vi.stubGlobal("fetch", serve(() => reply(200, { answer: "" })));
+  render(<App />);
+  expect(await screen.findByText("Active PDF: k21.pdf (default)")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Use the default PDF" })).toBeNull();
+});
+
+test("uploads a PDF, shows progress, then ready and the active name", async () => {
+  let finish: (value: Response) => void = () => {};
+  const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+    if (url === "/api/sources") return reply(200, SOURCES);
+    if (init?.method === "PUT") return new Promise<Response>((resolve) => (finish = resolve));
+    return reply(200, DEFAULT_PDF);
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  render(<App />);
+  await screen.findByText("Active PDF: k21.pdf (default)");
+  const file = pdfFile();
+  await userEvent.upload(screen.getByLabelText("Upload a PDF"), file);
+  expect((await screen.findByRole("status")).textContent).toBe("Uploading notes.pdf...");
+  expect(fetchMock).toHaveBeenCalledWith("/api/pdf?name=notes.pdf", expect.objectContaining({ method: "PUT", body: file }));
+  finish(new Response(JSON.stringify({ name: "notes.pdf", uploaded: true }), { status: 200 }));
+  expect((await screen.findByRole("status")).textContent).toBe("notes.pdf is ready");
+  expect(screen.getByText("Active PDF: notes.pdf (uploaded)")).toBeTruthy();
+});
+
+test("asks the uploaded PDF, then switches back to the default and asks that", async () => {
+  const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+    if (url === "/api/sources") return reply(200, SOURCES);
+    if (init?.method === "PUT") return reply(200, { name: "notes.pdf", uploaded: true });
+    if (init?.method === "DELETE") return reply(200, DEFAULT_PDF);
+    if (url === "/api/pdf") return reply(200, DEFAULT_PDF);
+    return reply(200, { answer: "An answer." });
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  render(<App />);
+  await screen.findByText("Active PDF: k21.pdf (default)");
+  await userEvent.upload(screen.getByLabelText("Upload a PDF"), pdfFile());
+  await screen.findByText("Active PDF: notes.pdf (uploaded)");
+  await ask("Kiwis?");
+  await screen.findByText("An answer.");
+  expect(fetchMock).toHaveBeenCalledWith("/api/ask", expect.objectContaining({ body: JSON.stringify({ question: "Kiwis?", source: "pdf" }) }));
+  await userEvent.click(screen.getByRole("button", { name: "Use the default PDF" }));
+  expect(await screen.findByText("Active PDF: k21.pdf (default)")).toBeTruthy();
+  expect(fetchMock).toHaveBeenCalledWith("/api/pdf", expect.objectContaining({ method: "DELETE" }));
+  expect(screen.queryByRole("button", { name: "Use the default PDF" })).toBeNull();
+  await ask("Again?");
+  await screen.findAllByText("An answer.");
+  expect(fetchMock).toHaveBeenLastCalledWith("/api/ask", expect.objectContaining({ body: JSON.stringify({ question: "Again?", source: "pdf" }) }));
+});
+
+test("a PDF that cannot be read shows one line and keeps the active PDF", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((url: string, init?: RequestInit) =>
+      url === "/api/sources" ? reply(200, SOURCES) : init?.method === "PUT" ? reply(400, { error: "That file is not a readable PDF." }) : reply(200, DEFAULT_PDF),
+    ),
+  );
+  render(<App />);
+  await screen.findByText("Active PDF: k21.pdf (default)");
+  await userEvent.upload(screen.getByLabelText("Upload a PDF"), pdfFile("bad.pdf"));
+  expect((await screen.findByRole("alert")).textContent).toBe("That file is not a readable PDF.");
+  expect(screen.getByText("Active PDF: k21.pdf (default)")).toBeTruthy();
+  expect(screen.queryByRole("status")).toBeNull();
+});
+
+test("a PDF dropped on the panel uploads like a chosen one", async () => {
+  const fetchMock = vi.fn((url: string, init?: RequestInit) =>
+    url === "/api/sources" ? reply(200, SOURCES) : init?.method === "PUT" ? reply(200, { name: "dropped.pdf", uploaded: true }) : reply(200, DEFAULT_PDF),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  render(<App />);
+  await screen.findByText("Active PDF: k21.pdf (default)");
+  fireEvent.drop(screen.getByText("or drop a PDF here"), { dataTransfer: { files: [pdfFile("dropped.pdf")] } });
+  expect(await screen.findByText("Active PDF: dropped.pdf (uploaded)")).toBeTruthy();
+});
+
+test("the PDF panel shows only while the PDF Source is picked", async () => {
+  vi.stubGlobal("fetch", serve(() => reply(200, { answer: "" })));
+  render(<App />);
+  await screen.findByText("Active PDF: k21.pdf (default)");
+  await userEvent.click(screen.getByRole("radio", { name: /^SQL/ }));
+  expect(screen.queryByText(/^Active PDF/)).toBeNull();
 });
