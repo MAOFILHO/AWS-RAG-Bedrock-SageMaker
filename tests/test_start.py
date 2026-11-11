@@ -110,6 +110,45 @@ def test_start_exits_zero_on_ctrl_c_and_stops_every_part(tmp_path):
             os.kill(pid, 0)
 
 
+def _start_with_long_running_parts(tmp_path, **popen_kwargs):
+    """Start start.sh with three fake parts that record their pid and stay up; return the process and the pids."""
+    pids = tmp_path / "pids"
+    (tmp_path / "uv").write_text(f'#!/usr/bin/env bash\necho "uv $$" >> "{pids}"\nexec sleep 60\n')
+    (tmp_path / "npm").write_text(f'#!/usr/bin/env bash\n[[ "$*" == *" run "* ]] || exit 0\necho "npm $$" >> "{pids}"\nexec sleep 60\n')
+    for tool in ("uv", "npm"):
+        (tmp_path / tool).chmod(0o755)
+    env = {**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}"}
+    proc = subprocess.Popen(["bash", str(START)], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **popen_kwargs)
+    deadline = time.time() + 15
+    while time.time() < deadline and (not pids.exists() or len(pids.read_text().splitlines()) < 3):
+        time.sleep(0.1)
+    started = {int(pid): tool for tool, pid in (line.split() for line in pids.read_text().splitlines())}
+    assert len(started) == 3
+    return proc, started
+
+
+def test_start_exits_non_zero_when_a_part_is_killed_on_purpose(tmp_path):
+    proc, started = _start_with_long_running_parts(tmp_path)
+    service = next(pid for pid, tool in started.items() if tool == "uv")
+    os.kill(service, signal.SIGKILL)
+    assert proc.wait(timeout=15) != 0
+    time.sleep(0.5)
+    for pid in started:
+        with pytest.raises(ProcessLookupError):
+            os.kill(pid, 0)
+
+
+def test_start_exits_zero_when_ctrl_c_reaches_the_whole_terminal_group(tmp_path):
+    """A real Ctrl-C sends SIGINT to every process in the foreground group, not only to start.sh."""
+    proc, started = _start_with_long_running_parts(tmp_path, start_new_session=True)
+    os.killpg(proc.pid, signal.SIGINT)
+    assert proc.wait(timeout=15) == 0
+    time.sleep(0.5)
+    for pid in started:
+        with pytest.raises(ProcessLookupError):
+            os.kill(pid, 0)
+
+
 def test_page_proxy_follows_the_api_port_setting():
     config = (ROOT / "web" / "vite.config.ts").read_text()
     assert "process.env.RAG_API_PORT" in config
