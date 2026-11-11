@@ -45,7 +45,7 @@ test("the dark theme redefines every color token", () => {
 const COLOR_FUNCTIONS = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(|#[0-9a-f]{3,8}\b/i;
 const COLOR_PROPERTY = /^(?:color|background|border|outline|box-shadow|text-shadow|fill|stroke|caret-color|accent-color)(?:-|$)/;
 const NEUTRAL = new Set(["transparent", "inherit", "currentcolor", "initial", "unset", "none", "solid", "dashed", "dotted"]);
-const declarations = (source: string) => [...source.matchAll(/([\w-]+)\s*:\s*([^;{}]+);/g)].map((m) => ({ property: m[1], value: m[2].trim() }));
+const declarations = (source: string) => [...source.matchAll(/([\w-]+)\s*:\s*([^;{}]+)(?:;|(?=\}))/g)].map((m) => ({ property: m[1], value: m[2].trim() }));
 const strayColors = (source: string) =>
   declarations(source)
     .filter(({ property }) => COLOR_PROPERTY.test(property) && !property.startsWith("--"))
@@ -60,6 +60,7 @@ const strayColors = (source: string) =>
 
 test("the color check catches named and oklch() colors", () => {
   expect(strayColors("a { color: red; }")).toEqual(["color: red"]);
+  expect(strayColors("a { color: red }")).toEqual(["color: red"]);
   expect(strayColors("a { background: oklch(0.5 0.1 200); }")).not.toEqual([]);
   expect(strayColors("a { border: 1px solid var(--border); background: transparent; }")).toEqual([]);
   expect(COLOR_FUNCTIONS.test("color: oklch(0.5 0.1 200)")).toBe(true);
