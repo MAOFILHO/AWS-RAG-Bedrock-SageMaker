@@ -44,16 +44,18 @@ test("the dark theme redefines every color token", () => {
 
 const COLOR_FUNCTIONS = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(|#[0-9a-f]{3,8}\b/i;
 const COLOR_PROPERTY = /^(?:color|background|border|outline|box-shadow|text-shadow|text-decoration|text-emphasis|column-rule|scrollbar-color|fill|stroke|caret-color|accent-color)(?:-|$)/;
-const NEUTRAL = new Set(["transparent", "inherit", "currentcolor", "initial", "unset", "none", "solid", "dashed", "dotted", "double", "wavy", "underline", "overline", "line-through", "auto", "!important"]);
+const NO_COLOR_PROPERTY = /^(?:border-(?:collapse|spacing|radius|image.*)|border-(?:(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?-)?(?:width|style|radius)|border-(?:top|bottom)-(?:left|right)-radius|background-(?:size|position.*|repeat|image|origin|clip|attachment|blend-mode)|text-decoration-(?:line|style|thickness)|text-emphasis-(?:style|position)|outline-(?:width|style|offset)|column-rule-(?:width|style))$/;
+const NEUTRAL = new Set(["transparent", "inherit", "currentcolor", "initial", "unset", "none", "solid", "dashed", "dotted", "double", "wavy", "underline", "overline", "line-through", "auto", "!important", "/", "no-repeat", "repeat", "repeat-x", "repeat-y", "space", "round", "cover", "contain", "center", "top", "bottom", "left", "right", "fixed", "scroll", "local", "border-box", "padding-box", "content-box"]);
 const declarations = (source: string) => [...source.matchAll(/([\w-]+)\s*:\s*([^;{}]+)(?:;|(?=\}))/g)].map((m) => ({ property: m[1], value: m[2].trim() }));
 const strayColors = (source: string) =>
   declarations(source)
-    .filter(({ property }) => COLOR_PROPERTY.test(property) && !property.startsWith("--"))
+    .filter(({ property }) => COLOR_PROPERTY.test(property) && !NO_COLOR_PROPERTY.test(property) && !property.startsWith("--"))
     .flatMap(({ property, value }) =>
       value
+        .replace(/url\([^)]*\)/g, " ")
         .replace(/var\(\s*--[\w-]+\s*,?/g, " ")
         .replace(/[\d.]+(?:px|rem|em|%)?/g, " ")
-        .split(/[\s,()]+/)
+        .split(/[\s,()/]+/)
         .filter((word) => word && !NEUTRAL.has(word.toLowerCase()))
         .map((word) => `${property}: ${word}`),
     );
@@ -68,6 +70,10 @@ test("the color check catches named and oklch() colors", () => {
   expect(strayColors("a { text-decoration-color: red; }")).toEqual(["text-decoration-color: red"]);
   expect(strayColors("a { text-decoration: underline wavy red; }")).toEqual(["text-decoration: red"]);
   expect(strayColors("a { color: var(--text) !important; }")).toEqual([]);
+  expect(strayColors("a { border-collapse: collapse; }")).toEqual([]);
+  expect(strayColors("a { background: url(x.png) no-repeat; }")).toEqual([]);
+  expect(strayColors("a { background: url(x.png) no-repeat center / cover red; }")).toEqual(["background: red"]);
+  expect(strayColors("a { border-radius: 4px; border-top-width: thin; border-spacing: 2px; background-size: cover; }")).toEqual([]);
   expect(COLOR_FUNCTIONS.test("color: oklch(0.5 0.1 200)")).toBe(true);
 });
 
