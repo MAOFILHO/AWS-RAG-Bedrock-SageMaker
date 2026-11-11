@@ -138,3 +138,33 @@ test("a question split across chunks inside a multi-byte character arrives intac
   expect(status).toBe("200");
   expect(asked).toEqual(["Qué é um SDK? 日本語"]);
 });
+
+test("passes the list of Sources through", async () => {
+  const sources = [{ id: "web", name: "Web", description: "Two pages." }];
+  const service = await fakeService((req, res) => res.end(req.url === "/sources" ? JSON.stringify(sources) : "{}"));
+  const api = await listen(createApi(service));
+  const reply = await fetch(`${api}/api/sources`);
+  expect(reply.status).toBe(200);
+  expect(await reply.json()).toEqual(sources);
+});
+
+test("returns one plain error for the Sources when the Python service is down", async () => {
+  const api = await listen(createApi("http://127.0.0.1:1"));
+  const reply = await fetch(`${api}/api/sources`);
+  expect(reply.status).toBe(502);
+  expect(await reply.json()).toEqual({ error: "The answer service is not available. Try again." });
+});
+
+test("passes the chosen Source to the service and rejects a Source that is not text", async () => {
+  const asked = [];
+  const service = await fakeService((req, res) => {
+    req.on("data", (chunk) => asked.push(JSON.parse(chunk)));
+    req.on("end", () => res.end(JSON.stringify({ answer: "ok" })));
+  });
+  const api = await listen(createApi(service));
+  expect((await post(api, { question: "Hi?", source: "sql" })).status).toBe(200);
+  expect(asked).toEqual([{ question: "Hi?", source: "sql" }]);
+  const bad = await post(api, { question: "Hi?", source: 5 });
+  expect(bad.status).toBe(400);
+  expect(await bad.json()).toEqual({ error: "Pick a Source first." });
+});

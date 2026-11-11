@@ -1,0 +1,51 @@
+[
+  {
+    "name": "AC1 lists web, PDF, SQL with descriptions",
+    "ok": true,
+    "detail": [
+      "Web: Two IBM pages on cloud computing and data science.",
+      "PDF: The K21 course PDF.",
+      "SQL: The Chinook music store database, read-only."
+    ]
+  },
+  {
+    "name": "AC2 web answers",
+    "ok": true,
+    "detail": {
+      "answer": "A public cloud is a type of cloud computing in which a cloud service provider makes computing resources available to users over the public internet. These include SaaS applications, individual virtual machines (VMs), bare metal computing hardware, complete enterprise-grade infrastructures, and development platforms. These resources might be accessible for free or according to subscription-based or pay-per-usage pricing models."
+    }
+  },
+  {
+    "name": "AC2 pdf answers",
+    "ok": true,
+    "detail": {
+      "answer": "- SDKs and APIs: Information about the software development kits (SDKs) and application"
+    }
+  },
+  {
+    "name": "AC2 sql answers",
+    "ok": true,
+    "detail": {
+      "answer": "Rows: [(59,)]"
+    }
+  },
+  {
+    "name": "AC3 second web question answers",
+    "ok": true,
+    "detail": {
+      "answer": "Data science combines math and statistics, specialized programming, advanced analytics, artificial intelligence (AI) and machine learning with specific subject matter expertise to uncover actionable insights hidden in an organization’s data. These insights can be used to guide decision making and strategic planning."
+    }
+  },
+  {
+    "name": "AC4 refusal shown",
+    "ok": true,
+    "detail": {
+      "answer": "I can only answer read-only questions about the database."
+    }
+  },
+  {
+    "name": "no console or page errors",
+    "ok": true,
+    "detail": []
+  }
+]
