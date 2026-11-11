@@ -1,0 +1,6 @@
+# pr-security-review · PR #112 · base staging · head 110b857 + QA v3 working tree
+Files modified:
+- web/src/App.test.tsx
+- web/src/theme.test.ts
+Result: 0 findings. Every changed file is a Vitest test (web/src/*.test.ts[x]); hard exclusion 11 (test-only files). No app, server, build or CI code changed.
+Note: no sub-task tool in this lane session; the diff is test-only, so the finder and false-positive steps were done inline.
