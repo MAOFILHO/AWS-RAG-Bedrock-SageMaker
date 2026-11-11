@@ -351,3 +351,29 @@ def test_wrong_aws_profile_prints_one_plain_line_naming_the_profile(monkeypatch,
         _assert_one_plain_line(result)
         assert "does-not-exist" in result.stderr
         assert "ProfileNotFound" not in result.output
+
+
+def test_profile_name_with_a_space_is_shell_quoted_in_the_error_line(monkeypatch):
+    from botocore.exceptions import ProfileNotFound
+
+    monkeypatch.setenv("AWS_PROFILE", "my profile")
+    _without_aws_access(monkeypatch, ProfileNotFound(profile="my profile"))
+    result = runner.invoke(app, ["ask", "What is cloud computing?", "--source", "web"])
+    _assert_one_plain_line(result)
+    assert result.exit_code == 2
+    assert "aws configure --profile 'my profile'" in result.stderr
+
+
+def test_profile_name_with_a_space_is_shell_quoted_in_chat_and_eval_too(monkeypatch, tmp_path):
+    from botocore.exceptions import ProfileNotFound
+
+    monkeypatch.setenv("AWS_PROFILE", "my profile")
+    _without_aws_access(monkeypatch, ProfileNotFound(profile="my profile"))
+    results = [
+        runner.invoke(app, ["chat", "--source", "web"], input="What is cloud computing?\n"),
+        runner.invoke(app, ["eval", "--out", str(tmp_path)]),
+    ]
+    for result in results:
+        _assert_one_plain_line(result)
+        assert result.exit_code == 2
+        assert "aws configure --profile 'my profile'" in result.stderr

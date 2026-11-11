@@ -1,0 +1,4 @@
+Mutation check on tests/test_service.py::test_service_refuses_a_pdf_over_10_mb_and_takes_one_just_under @ 577e791
+mutant '>' -> '>=' : 1 failed (caught)
+mutant guard dropped : 1 failed (caught)
+restored            : 1 passed
