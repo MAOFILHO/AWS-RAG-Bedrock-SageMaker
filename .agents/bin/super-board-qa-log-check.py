@@ -34,7 +34,7 @@ def main(argv=None):
         return 2
     bad = offending(res.stdout.split("\0"))
     for path in bad:
-        print(f"QA log added to the PR diff: {path}. Remove it (git rm) and post the log as an issue comment instead.")
+        print(f"QA log added to the PR diff: {path}. Post its content as an issue comment first, then remove it (git rm).")
     return 1 if bad else 0
 
 

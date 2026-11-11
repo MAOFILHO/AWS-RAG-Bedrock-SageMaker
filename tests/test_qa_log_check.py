@@ -80,3 +80,15 @@ def test_file_renamed_to_log_fails(tmp_path, capsys):
     git(tmp_path, "commit", "-qm", "pr")
     assert run(tmp_path) == 1
     assert "moved.log" in capsys.readouterr().out
+
+
+def test_tester_steps_post_the_log_before_git_rm():
+    run_md = Path(__file__).parent.parent / ".agents" / "skills" / "super-board" / "references" / "run.md"
+    steps = [
+        line
+        for line in run_md.read_text().splitlines()
+        if "super-board-qa-log-check.py" in line and "post its content" in line
+    ]
+    assert len(steps) == 2
+    for line in steps:
+        assert line.index("post its content") < line.index("`git rm`")
