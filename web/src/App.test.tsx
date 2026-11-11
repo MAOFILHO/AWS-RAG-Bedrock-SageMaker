@@ -238,3 +238,13 @@ test("the PDF panel shows only while the PDF Source is picked", async () => {
   await userEvent.click(screen.getByRole("radio", { name: /^SQL/ }));
   expect(screen.queryByText(/^Active PDF/)).toBeNull();
 });
+
+test("every control has an accessible name", async () => {
+  vi.stubGlobal("fetch", serve(() => reply(200, { answer: "" })));
+  render(<App />);
+  await screen.findAllByRole("radio");
+  for (const control of [...screen.getAllByRole("radio"), screen.getByRole("textbox"), ...screen.getAllByRole("button")]) {
+    expect(control.getAttribute("aria-label") || control.textContent || control.closest("label")?.textContent).toBeTruthy();
+  }
+  expect(screen.getByRole("button", { name: "Send" })).toBeTruthy();
+});

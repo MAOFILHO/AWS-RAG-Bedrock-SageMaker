@@ -85,7 +85,10 @@ export default function App() {
 
   return (
     <main>
-      <h1>Ask a Source</h1>
+      <header className="brand">
+        <span className="wordmark">Contoso</span>
+        <h1>Ask a Source</h1>
+      </header>
       <fieldset>
         <legend>Source</legend>
         {sources.map((item) => (
@@ -120,9 +123,9 @@ export default function App() {
       </ol>
       {loading && <p role="status">Thinking...</p>}
       <form onSubmit={ask}>
-        <input aria-label="Question" value={question} onChange={(e) => setQuestion(e.target.value)} />
+        <input type="text" aria-label="Question" value={question} onChange={(e) => setQuestion(e.target.value)} />
         <button type="submit" disabled={loading}>Send</button>
-        <button type="button" onClick={() => { setThread([]); setError(""); }}>Clear</button>
+        <button type="button" className="secondary" onClick={() => { setThread([]); setError(""); }}>Clear</button>
       </form>
       {error && <p role="alert">{error}</p>}
     </main>
