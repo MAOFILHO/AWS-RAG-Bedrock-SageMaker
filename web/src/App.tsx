@@ -1,6 +1,7 @@
-import { FormEvent, useEffect, useState } from "react";
+import { DragEvent, FormEvent, useEffect, useState } from "react";
 
 type Source = { id: string; name: string; description: string };
+type ActivePdf = { name: string; uploaded: boolean };
 type Turn = { question: string; source: string; answer: string };
 
 export default function App() {
@@ -10,6 +11,15 @@ export default function App() {
   const [thread, setThread] = useState<Turn[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [activePdf, setActivePdf] = useState<ActivePdf | null>(null);
+  const [pdfStatus, setPdfStatus] = useState("");
+
+  useEffect(() => {
+    fetch("/api/pdf")
+      .then((reply) => (reply.ok ? reply.json() : Promise.reject()))
+      .then((pdf: ActivePdf) => typeof pdf.name === "string" && setActivePdf(pdf))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch("/api/sources")
@@ -45,6 +55,34 @@ export default function App() {
     }
   }
 
+  async function pdfCall(url: string, init: RequestInit, status: (pdf: ActivePdf) => string) {
+    setError("");
+    try {
+      const reply = await fetch(url, init);
+      const body = await reply.json();
+      if (!reply.ok) {
+        setPdfStatus("");
+        return setError(body.error);
+      }
+      setActivePdf(body);
+      setPdfStatus(status(body));
+    } catch {
+      setPdfStatus("");
+      setError("Could not reach the server. Try again.");
+    }
+  }
+
+  function upload(file?: File) {
+    if (!file) return;
+    setPdfStatus(`Uploading ${file.name}...`);
+    return pdfCall(`/api/pdf?name=${encodeURIComponent(file.name)}`, { method: "PUT", body: file }, (pdf) => `${pdf.name} is ready`);
+  }
+
+  function drop(event: DragEvent) {
+    event.preventDefault();
+    upload(event.dataTransfer.files[0]);
+  }
+
   return (
     <main>
       <h1>Ask a Source</h1>
@@ -57,6 +95,20 @@ export default function App() {
           </label>
         ))}
       </fieldset>
+      {source === "pdf" && (
+        <section onDragOver={(event) => event.preventDefault()} onDrop={drop}>
+          {activePdf && <p>Active PDF: {activePdf.name} ({activePdf.uploaded ? "uploaded" : "default"})</p>}
+          <label>
+            Upload a PDF
+            <input type="file" accept="application/pdf" onChange={(event) => { upload(event.target.files?.[0]); event.target.value = ""; }} />
+          </label>
+          <span>or drop a PDF here</span>
+          {activePdf?.uploaded && (
+            <button type="button" onClick={() => pdfCall("/api/pdf", { method: "DELETE" }, () => "")}>Use the default PDF</button>
+          )}
+          {pdfStatus && <p role="status">{pdfStatus}</p>}
+        </section>
+      )}
       <ol>
         {thread.map((turn, index) => (
           <li key={index}>
