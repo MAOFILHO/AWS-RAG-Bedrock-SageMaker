@@ -4,5 +4,5 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   plugins: [react()],
   server: { proxy: { "/api": "http://127.0.0.1:3001" } },
-  test: { environment: "jsdom" },
+  test: { environment: "jsdom", css: { include: /theme\.css/ } },
 });
