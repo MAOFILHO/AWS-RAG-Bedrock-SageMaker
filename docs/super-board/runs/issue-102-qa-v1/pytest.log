@@ -1,0 +1,28 @@
+Checked 60 packages in 8ms
+============================= test session starts ==============================
+platform darwin -- Python 3.12.14, pytest-9.2.0, pluggy-1.7.0
+rootdir: /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-102-qa
+configfile: pyproject.toml
+testpaths: tests
+plugins: langsmith-0.14.17, anyio-4.16.0
+collected 283 items / 26 deselected / 257 selected
+
+tests/test_bedrock.py .........                                          [  3%]
+tests/test_ci.py .........                                               [  7%]
+tests/test_cli.py ...............................                        [ 19%]
+tests/test_data_quality.py .........                                     [ 22%]
+tests/test_eval.py ...............................                       [ 34%]
+tests/test_github_read.py ....                                           [ 36%]
+tests/test_golden.py .............................................       [ 53%]
+tests/test_pdf.py ....                                                   [ 55%]
+tests/test_qa_log_check.py .......                                       [ 57%]
+tests/test_readme.py ..............                                      [ 63%]
+tests/test_safety.py ......................                              [ 71%]
+tests/test_service.py ......................                             [ 80%]
+tests/test_sql.py ..............................                         [ 92%]
+tests/test_start.py ......                                               [ 94%]
+tests/test_tracing.py ........                                           [ 97%]
+tests/test_web.py ......                                                 [100%]
+
+====================== 257 passed, 26 deselected in 8.22s ======================
+pytest exit=0

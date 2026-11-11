@@ -2,6 +2,7 @@
 
 import json
 import os
+import shlex
 import time
 from dataclasses import dataclass, field
 from typing import Callable, ContextManager, Mapping, Protocol
@@ -159,7 +160,7 @@ def aws_access_message(error: BaseException) -> str | None:
         return "Error: no AWS access found. Run `aws configure`, enable Bedrock model access, then try again."
     if isinstance(error, ProfileNotFound):
         profile = error.kwargs["profile"]
-        return f"Error: AWS profile {profile!r} not found. Run `aws configure --profile {profile}` or fix AWS_PROFILE."
+        return f"Error: AWS profile {profile!r} not found. Run `aws configure --profile {shlex.quote(profile)}` or fix AWS_PROFILE."
     return None
 
 
