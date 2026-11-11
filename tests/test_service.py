@@ -96,6 +96,10 @@ def test_service_rejects_an_unknown_source():
 KIWIS = "Kiwis are flightless birds from New Zealand."
 
 
+def _app(tmp_path):
+    return create_app(fake_models(), uploads=tmp_path / "uploads")
+
+
 def _upload(client, name="kiwis.pdf", content=None):
     from fakes import text_pdf
 
@@ -107,8 +111,8 @@ def test_service_names_the_default_pdf_as_active():
         assert client.get("/pdf").json() == {"name": "invoice.pdf", "uploaded": False}
 
 
-def test_service_answers_from_an_uploaded_pdf_then_switches_back():
-    with TestClient(create_app(fake_models())) as client:
+def test_service_answers_from_an_uploaded_pdf_then_switches_back(tmp_path):
+    with TestClient(_app(tmp_path)) as client:
         reply = _upload(client)
         assert reply.status_code == 200
         assert reply.json() == {"name": "kiwis.pdf", "uploaded": True}
@@ -120,10 +124,84 @@ def test_service_answers_from_an_uploaded_pdf_then_switches_back():
         assert back == {"answer": rag_course.ask("pdf", QUESTION, models=fake_models())}
 
 
-def test_service_keeps_the_active_pdf_when_an_upload_is_not_a_pdf():
-    with TestClient(create_app(fake_models())) as client:
+def test_service_keeps_the_active_pdf_when_an_upload_is_not_a_pdf(tmp_path):
+    with TestClient(_app(tmp_path)) as client:
         _upload(client)
         reply = _upload(client, "notes.pdf", b"this is not a pdf")
         assert reply.status_code == 400
         assert reply.json() == {"error": "That file is not a readable PDF."}
         assert client.get("/pdf").json() == {"name": "kiwis.pdf", "uploaded": True}
+
+
+def test_service_refuses_a_pdf_with_no_text(tmp_path):
+    from fakes import text_pdf
+
+    with TestClient(_app(tmp_path)) as client:
+        _upload(client)
+        reply = _upload(client, "scan.pdf", text_pdf([]))
+        assert reply.status_code == 400
+        assert reply.json() == {"error": "That PDF has no text to read. A scan will not work."}
+        assert client.get("/pdf").json() == {"name": "kiwis.pdf", "uploaded": True}
+    assert len(list((tmp_path / "uploads").iterdir())) == 1
+
+
+def test_service_never_uses_the_file_name_as_a_path(tmp_path):
+    with TestClient(_app(tmp_path)) as client:
+        reply = _upload(client, "../x.pdf")
+        assert reply.json() == {"name": "x.pdf", "uploaded": True}
+        _upload(client, "..\\..\\y.pdf")
+        assert client.get("/pdf").json()["name"] == "y.pdf"
+    assert not (tmp_path / "x.pdf").exists()
+    assert [p.parent for p in tmp_path.rglob("*.pdf")] == [tmp_path / "uploads"]
+
+
+def test_service_keeps_only_the_newest_uploaded_file(tmp_path):
+    from fakes import text_pdf
+
+    with TestClient(_app(tmp_path)) as client:
+        _upload(client, "one.pdf")
+        first = list((tmp_path / "uploads").iterdir())
+        _upload(client, "two.pdf", text_pdf(["Owls hunt at night."]))
+        second = list((tmp_path / "uploads").iterdir())
+        assert len(first) == 1 and len(second) == 1 and first != second
+        client.delete("/pdf")
+    assert list((tmp_path / "uploads").iterdir()) == []
+
+
+def test_service_deletes_an_upload_left_by_an_earlier_run(tmp_path):
+    from fakes import text_pdf
+
+    with TestClient(_app(tmp_path)) as client:
+        _upload(client, "a.pdf")
+    with TestClient(_app(tmp_path)) as client:
+        _upload(client, "b.pdf", text_pdf(["Owls hunt at night."]))
+        assert len(list((tmp_path / "uploads").iterdir())) == 1
+
+
+def test_service_deletes_the_saved_file_when_the_embed_call_fails(tmp_path):
+    from rag_course.core import Models
+    from fakes import FakeAnswerModel, FakeEmbeddings
+
+    class FlakyEmbeddings(FakeEmbeddings):
+        broken = False
+
+        def embed(self, texts):
+            if self.broken:
+                raise RuntimeError("bedrock is down")
+            return super().embed(texts)
+
+    embed = FlakyEmbeddings()
+    app = create_app(Models(answer=FakeAnswerModel(), embed=embed), uploads=tmp_path / "uploads")
+    with TestClient(app, raise_server_exceptions=False) as client:
+        embed.broken = True
+        assert _upload(client).status_code == 500
+    assert list((tmp_path / "uploads").iterdir()) == []
+
+
+def test_upload_folder_is_ignored_by_git():
+    import subprocess
+    from rag_course import service
+
+    root = service.DEFAULT_UPLOADS.parent
+    check = subprocess.run(["git", "check-ignore", "-q", f"{service.DEFAULT_UPLOADS.name}/x.pdf"], cwd=root)
+    assert check.returncode == 0

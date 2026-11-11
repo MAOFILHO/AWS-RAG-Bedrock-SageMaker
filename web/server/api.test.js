@@ -180,7 +180,7 @@ test("sends an uploaded PDF to the service with its name and returns the active 
     });
   });
   const api = await listen(createApi(service));
-  const bytes = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x00, 0xff, 0xfe]);
+  const bytes = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2d, 0x00, 0xff, 0xfe]);
   const reply = await fetch(`${api}/api/pdf?name=${encodeURIComponent("my file.pdf")}`, { method: "PUT", headers: { "content-type": "application/pdf" }, body: bytes });
   expect(reply.status).toBe(200);
   expect(await reply.json()).toEqual({ name: "my file.pdf", uploaded: true });
@@ -198,7 +198,7 @@ test("passes the active PDF and the switch back through, and passes a not-a-PDF 
   const api = await listen(createApi(service));
   expect(await (await fetch(`${api}/api/pdf`)).json()).toEqual({ name: "invoice.pdf", uploaded: false, method: "GET" });
   expect(await (await fetch(`${api}/api/pdf`, { method: "DELETE" })).json()).toEqual({ name: "invoice.pdf", uploaded: false, method: "DELETE" });
-  const bad = await fetch(`${api}/api/pdf?name=a.pdf`, { method: "PUT", body: "nope" });
+  const bad = await fetch(`${api}/api/pdf?name=a.pdf`, { method: "PUT", body: "%PDF-nope" });
   expect(bad.status).toBe(400);
   expect(await bad.json()).toEqual({ error: "That file is not a readable PDF." });
 });
@@ -206,9 +206,32 @@ test("passes the active PDF and the switch back through, and passes a not-a-PDF 
 test("returns one plain error for the PDF routes when the Python service is down", async () => {
   const api = await listen(createApi("http://127.0.0.1:1"));
   for (const [method, path] of [["GET", ""], ["DELETE", ""], ["PUT", "?name=a.pdf"]]) {
-    const reply = await fetch(`${api}/api/pdf${path}`, { method, body: method === "PUT" ? "x" : undefined });
+    const reply = await fetch(`${api}/api/pdf${path}`, { method, body: method === "PUT" ? "%PDF-x" : undefined });
     expect(reply.status).toBe(502);
     expect(await reply.json()).toEqual({ error: "The answer service is not available. Try again." });
   }
   expect((await fetch(`${api}/api/pdf?name=`, { method: "PUT", body: "x" })).status).toBe(400);
+});
+
+test("refuses a text file renamed .pdf before it reaches the service", async () => {
+  const seen = [];
+  const service = await fakeService((req, res) => { seen.push(req.url); res.end("{}"); });
+  const api = await listen(createApi(service));
+  const reply = await fetch(`${api}/api/pdf?name=notes.pdf`, { method: "PUT", headers: { "content-type": "application/pdf" }, body: "just some notes" });
+  expect(reply.status).toBe(400);
+  expect(await reply.json()).toEqual({ error: "That file is not a PDF." });
+  expect(seen).toEqual([]);
+});
+
+test("refuses a PDF over 10 MB and names the limit, and takes one just under it", async () => {
+  const service = await fakeService((req, res) => { req.resume(); req.on("end", () => res.end(JSON.stringify({ name: "a.pdf", uploaded: true }))); });
+  const api = await listen(createApi(service));
+  const big = Buffer.alloc(10 * 1024 * 1024 + 1, 0x20);
+  big.write("%PDF-");
+  const refused = await fetch(`${api}/api/pdf?name=big.pdf`, { method: "PUT", body: big });
+  expect(refused.status).toBe(413);
+  expect(await refused.json()).toEqual({ error: "That PDF is over the 10 MB limit." });
+  const ok = Buffer.alloc(10 * 1024 * 1024, 0x20);
+  ok.write("%PDF-");
+  expect((await fetch(`${api}/api/pdf?name=ok.pdf`, { method: "PUT", body: ok })).status).toBe(200);
 });

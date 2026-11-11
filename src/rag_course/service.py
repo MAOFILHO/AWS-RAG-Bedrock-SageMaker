@@ -6,7 +6,7 @@ The PDF Source answers from the active PDF: the default one, or the last one upl
 Run it with `uv run uvicorn rag_course.service:create_app --factory --port 8000`.
 """
 
-import tempfile
+import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Callable
@@ -18,6 +18,8 @@ from pydantic import BaseModel
 from rag_course import pdf, sql, web
 from rag_course.core import Models, Settings, SourceError, bedrock_models
 
+
+DEFAULT_UPLOADS = Path(__file__).resolve().parents[2] / "uploads"
 
 SOURCES = [
     {"id": "web", "name": "Web", "description": "Two IBM pages on cloud computing and data science."},
@@ -35,6 +37,7 @@ def create_app(
     models: Models | None = None,
     fetch: Callable[[str], str] = web.fetch_page,
     db: Path = sql.DEFAULT_DB,
+    uploads: Path = DEFAULT_UPLOADS,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -69,22 +72,36 @@ def create_app(
     def get_pdf():
         return active_pdf()
 
+    def clear_uploads(keep: Path | None = None):
+        # Sweeps the folder, not one remembered path, so a file from an earlier run goes too.
+        for old in uploads.glob("*.pdf"):
+            if old != keep:
+                old.unlink(missing_ok=True)
+
     @app.put("/pdf")
     def put_pdf(name: str, content: Annotated[bytes, Body(media_type="application/pdf")]):
         m = app.state.models
-        with tempfile.TemporaryDirectory() as folder:
-            path = Path(folder) / "upload.pdf"
-            path.write_bytes(content)
-            try:
-                store = pdf.store(m, path)
-            except SourceError:
+        # The file is saved under a name we make up. The name the user sent is only shown back.
+        uploads.mkdir(parents=True, exist_ok=True)
+        path = uploads / f"{uuid.uuid4().hex}.pdf"
+        path.write_bytes(content)
+        try:
+            store = pdf.store(m, path)
+        except BaseException as error:
+            path.unlink(missing_ok=True)
+            if isinstance(error, pdf.NoTextError):
+                return JSONResponse({"error": "That PDF has no text to read. A scan will not work."}, status_code=400)
+            if isinstance(error, SourceError):
                 return JSONResponse({"error": "That file is not a readable PDF."}, status_code=400)
+            raise
+        clear_uploads(keep=path)
         app.state.answerers["pdf"] = lambda question: pdf.answer(question, store, m)
-        app.state.pdf_name = name
+        app.state.pdf_name = name.replace("\\", "/").rsplit("/", 1)[-1] or "upload.pdf"
         return active_pdf()
 
     @app.delete("/pdf")
     def reset_pdf():
+        clear_uploads()
         app.state.answerers["pdf"] = app.state.default_pdf
         app.state.pdf_name = pdf.DEFAULT_PDF.name
         return active_pdf()

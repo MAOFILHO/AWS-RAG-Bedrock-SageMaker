@@ -51,10 +51,13 @@ export function createApi(serviceUrl) {
   };
   app.get("/api/pdf", (req, res) => pdf(res, "GET"));
   app.delete("/api/pdf", (req, res) => pdf(res, "DELETE"));
-  app.put("/api/pdf", express.raw({ type: () => true, limit: "25mb" }), (req, res) => {
+  app.put("/api/pdf", express.raw({ type: () => true, limit: "10mb" }), (req, res) => {
     const name = req.query.name;
     if (typeof name !== "string" || !name.trim() || !Buffer.isBuffer(req.body) || !req.body.length) {
       return res.status(400).json({ error: "Pick a PDF file first." });
+    }
+    if (req.body.subarray(0, 5).toString("latin1") !== "%PDF-") {
+      return res.status(400).json({ error: "That file is not a PDF." });
     }
     pdf(res, "PUT", `?name=${encodeURIComponent(name)}`, req.body);
   });
@@ -65,7 +68,7 @@ export function createApi(serviceUrl) {
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
     if (error.type === "entity.too.large") {
-      return res.status(413).json({ error: req.path === "/api/pdf" ? "That file is too big." : "That question is too long." });
+      return res.status(413).json({ error: req.path === "/api/pdf" ? "That PDF is over the 10 MB limit." : "That question is too long." });
     }
     if (error.status === 400 || error.type === "entity.parse.failed") {
       return res.status(400).json({ error: "Type a question first." });

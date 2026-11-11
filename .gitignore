@@ -13,3 +13,6 @@
 __pycache__/
 .pytest_cache/
 reports/eval_*
+
+# Uploaded PDFs
+uploads/

@@ -1,0 +1,25 @@
+== AC1 text file renamed .pdf
+notes.pdf -> {"error":"That file is not a PDF."} [HTTP 400]
+   uploads/: 
+== AC2 PDF over 10 MB
+big.pdf -> {"error":"That PDF is over the 10 MB limit."} [HTTP 413]
+   uploads/: 
+== AC3 scan with no text
+kiwis.pdf -> {"name":"kiwis.pdf","uploaded":true} [HTTP 200]
+   uploads/: 38923f8584b14c8594a1441648ec9190.pdf 
+scan.pdf -> {"error":"That PDF has no text to read. A scan will not work."} [HTTP 400]
+   uploads/: 38923f8584b14c8594a1441648ec9190.pdf 
+   active: {"name":"kiwis.pdf","uploaded":true}
+== AC4 name ../x.pdf
+../x.pdf -> {"name":"x.pdf","uploaded":true} [HTTP 200]
+   uploads/: 4ea73f7495e24ee89bc4bfd0036654bc.pdf 
+   outside? ls: /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-80-qa/../x.pdf: No such file or directory ls: /Users/marco/project/AWS-RAG-Bedrock-SageMaker/.claude/worktrees/issue-80-qa/x.pdf: No such file or directory 
+== AC5 new upload replaces old
+kiwis.pdf -> {"name":"kiwis.pdf","uploaded":true} [HTTP 200]
+   before=4ea73f7495e24ee89bc4bfd0036654bc.pdf after=b767c800ff9c454d86360e4f66ff82a9.pdf
+DELETE -> {"name":"invoice.pdf","uploaded":false}
+   uploads/: 
+== AC6 ignore file
+.gitignore:18:uploads/	uploads/x.pdf
+== ask after replace
+{"answer":"I do not have sufficient information in the provided document."}
