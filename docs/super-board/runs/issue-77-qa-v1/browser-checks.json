@@ -1,0 +1,918 @@
+[
+ {
+  "name": "no-hscroll light 390 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 390,
+   "innerWidth": 390
+  }
+ },
+ {
+  "name": "no-console-errors light 390 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 390 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 390,
+   "innerWidth": 390
+  }
+ },
+ {
+  "name": "no-console-errors light 390 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 390 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 390,
+   "innerWidth": 390
+  }
+ },
+ {
+  "name": "no-console-errors light 390 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll light 375 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 375,
+   "innerWidth": 375
+  }
+ },
+ {
+  "name": "no-console-errors light 375 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 375 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 375,
+   "innerWidth": 375
+  }
+ },
+ {
+  "name": "no-console-errors light 375 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 375 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 375,
+   "innerWidth": 375
+  }
+ },
+ {
+  "name": "no-console-errors light 375 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll light 1024 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1024,
+   "innerWidth": 1024
+  }
+ },
+ {
+  "name": "no-console-errors light 1024 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 1024 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1024,
+   "innerWidth": 1024
+  }
+ },
+ {
+  "name": "no-console-errors light 1024 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 1024 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1024,
+   "innerWidth": 1024
+  }
+ },
+ {
+  "name": "no-console-errors light 1024 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll light 1440 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440
+  }
+ },
+ {
+  "name": "no-console-errors light 1440 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 1440 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440
+  }
+ },
+ {
+  "name": "no-console-errors light 1440 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 1440 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440
+  }
+ },
+ {
+  "name": "no-console-errors light 1440 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll light 1920 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1920,
+   "innerWidth": 1920
+  }
+ },
+ {
+  "name": "no-console-errors light 1920 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 1920 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1920,
+   "innerWidth": 1920
+  }
+ },
+ {
+  "name": "no-console-errors light 1920 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll light 1920 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1920,
+   "innerWidth": 1920
+  }
+ },
+ {
+  "name": "no-console-errors light 1920 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll dark 390 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 390,
+   "innerWidth": 390
+  }
+ },
+ {
+  "name": "no-console-errors dark 390 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 390 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 390,
+   "innerWidth": 390
+  }
+ },
+ {
+  "name": "no-console-errors dark 390 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 390 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 390,
+   "innerWidth": 390
+  }
+ },
+ {
+  "name": "no-console-errors dark 390 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll dark 375 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 375,
+   "innerWidth": 375
+  }
+ },
+ {
+  "name": "no-console-errors dark 375 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 375 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 375,
+   "innerWidth": 375
+  }
+ },
+ {
+  "name": "no-console-errors dark 375 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 375 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 375,
+   "innerWidth": 375
+  }
+ },
+ {
+  "name": "no-console-errors dark 375 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll dark 1024 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1024,
+   "innerWidth": 1024
+  }
+ },
+ {
+  "name": "no-console-errors dark 1024 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 1024 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1024,
+   "innerWidth": 1024
+  }
+ },
+ {
+  "name": "no-console-errors dark 1024 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 1024 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1024,
+   "innerWidth": 1024
+  }
+ },
+ {
+  "name": "no-console-errors dark 1024 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll dark 1440 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440
+  }
+ },
+ {
+  "name": "no-console-errors dark 1440 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 1440 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440
+  }
+ },
+ {
+  "name": "no-console-errors dark 1440 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 1440 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1440,
+   "innerWidth": 1440
+  }
+ },
+ {
+  "name": "no-console-errors dark 1440 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "no-hscroll dark 1920 short",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1920,
+   "innerWidth": 1920
+  }
+ },
+ {
+  "name": "no-console-errors dark 1920 short",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 1920 long",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1920,
+   "innerWidth": 1920
+  }
+ },
+ {
+  "name": "no-console-errors dark 1920 long",
+  "ok": true,
+  "detail": []
+ },
+ {
+  "name": "no-hscroll dark 1920 error",
+  "ok": true,
+  "detail": {
+   "scrollWidth": 1920,
+   "innerWidth": 1920
+  }
+ },
+ {
+  "name": "no-console-errors dark 1920 error",
+  "ok": false,
+  "detail": [
+   "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ]
+ },
+ {
+  "name": "keyboard reaches radio, textbox, button (light)",
+  "ok": true,
+  "detail": [
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "value": "pdf",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   },
+   {
+    "tag": "BUTTON",
+    "type": "submit",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   },
+   {
+    "tag": "BODY",
+    "type": "",
+    "value": "",
+    "focusVisible": false,
+    "outlineStyle": "none",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(27, 36, 48)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "value": "pdf",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   }
+  ]
+ },
+ {
+  "name": "focus ring visible on every stop (light)",
+  "ok": true,
+  "detail": [
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "value": "pdf",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   },
+   {
+    "tag": "BUTTON",
+    "type": "submit",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   },
+   {
+    "tag": "BODY",
+    "type": "",
+    "value": "",
+    "focusVisible": false,
+    "outlineStyle": "none",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(27, 36, 48)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "value": "pdf",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(168, 74, 0)"
+   }
+  ]
+ },
+ {
+  "name": "arrow key picks next Source (light)",
+  "ok": true
+ },
+ {
+  "name": "every control has an accessible name (light)",
+  "ok": true,
+  "detail": [
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "labelled": true
+   },
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "labelled": true
+   },
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "labelled": true
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "labelled": true
+   },
+   {
+    "tag": "BUTTON",
+    "type": "submit",
+    "labelled": true
+   }
+  ]
+ },
+ {
+  "name": "role radio named /Web/ (light)",
+  "ok": true
+ },
+ {
+  "name": "role radio named /PDF/ (light)",
+  "ok": true
+ },
+ {
+  "name": "role radio named /SQL/ (light)",
+  "ok": true
+ },
+ {
+  "name": "role textbox named Question (light)",
+  "ok": true
+ },
+ {
+  "name": "role button named Ask (light)",
+  "ok": true
+ },
+ {
+  "name": "only token colors in computed styles (light)",
+  "ok": false,
+  "detail": [
+   "html.color=#000000",
+   "input.color=#000000"
+  ]
+ },
+ {
+  "name": "live text contrast >= 4.5 (light)",
+  "ok": true,
+  "detail": [
+   {
+    "text": "Contoso",
+    "ratio": 6.67
+   },
+   {
+    "text": "Ask a Source",
+    "ratio": 7.56
+   },
+   {
+    "text": "Source",
+    "ratio": 15.65
+   },
+   {
+    "text": "Web",
+    "ratio": 14.44
+   },
+   {
+    "text": ":",
+    "ratio": 14.44
+   },
+   {
+    "text": "Two IBM pages on cloud computi",
+    "ratio": 14.44
+   },
+   {
+    "text": "PDF",
+    "ratio": 14.44
+   },
+   {
+    "text": ":",
+    "ratio": 14.44
+   },
+   {
+    "text": "The K21 course PDF.",
+    "ratio": 14.44
+   },
+   {
+    "text": "SQL",
+    "ratio": 14.44
+   },
+   {
+    "text": ":",
+    "ratio": 14.44
+   },
+   {
+    "text": "The Chinook music store databa",
+    "ratio": 14.44
+   },
+   {
+    "text": "Ask",
+    "ratio": 6.67
+   },
+   {
+    "text": "Cloud computing is on-demand c",
+    "ratio": 14.44
+   },
+   {
+    "text": "<input>",
+    "ratio": 15.65
+   },
+   {
+    "text": "<button>",
+    "ratio": 6.67
+   }
+  ]
+ },
+ {
+  "name": "keyboard reaches radio, textbox, button (dark)",
+  "ok": true,
+  "detail": [
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "value": "pdf",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   },
+   {
+    "tag": "BUTTON",
+    "type": "submit",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   },
+   {
+    "tag": "BODY",
+    "type": "",
+    "value": "",
+    "focusVisible": false,
+    "outlineStyle": "none",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(232, 237, 243)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "value": "pdf",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   }
+  ]
+ },
+ {
+  "name": "focus ring visible on every stop (dark)",
+  "ok": true,
+  "detail": [
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "value": "pdf",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   },
+   {
+    "tag": "BUTTON",
+    "type": "submit",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   },
+   {
+    "tag": "BODY",
+    "type": "",
+    "value": "",
+    "focusVisible": false,
+    "outlineStyle": "none",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(232, 237, 243)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "value": "pdf",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "value": "",
+    "focusVisible": true,
+    "outlineStyle": "solid",
+    "outlineWidth": "3px",
+    "outlineColor": "rgb(245, 166, 91)"
+   }
+  ]
+ },
+ {
+  "name": "arrow key picks next Source (dark)",
+  "ok": true
+ },
+ {
+  "name": "every control has an accessible name (dark)",
+  "ok": true,
+  "detail": [
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "labelled": true
+   },
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "labelled": true
+   },
+   {
+    "tag": "INPUT",
+    "type": "radio",
+    "labelled": true
+   },
+   {
+    "tag": "INPUT",
+    "type": "text",
+    "labelled": true
+   },
+   {
+    "tag": "BUTTON",
+    "type": "submit",
+    "labelled": true
+   }
+  ]
+ },
+ {
+  "name": "role radio named /Web/ (dark)",
+  "ok": true
+ },
+ {
+  "name": "role radio named /PDF/ (dark)",
+  "ok": true
+ },
+ {
+  "name": "role radio named /SQL/ (dark)",
+  "ok": true
+ },
+ {
+  "name": "role textbox named Question (dark)",
+  "ok": true
+ },
+ {
+  "name": "role button named Ask (dark)",
+  "ok": true
+ },
+ {
+  "name": "only token colors in computed styles (dark)",
+  "ok": false,
+  "detail": [
+   "html.color=#ffffff",
+   "input.color=#ffffff"
+  ]
+ },
+ {
+  "name": "live text contrast >= 4.5 (dark)",
+  "ok": true,
+  "detail": [
+   {
+    "text": "Contoso",
+    "ratio": 7.93
+   },
+   {
+    "text": "Ask a Source",
+    "ratio": 9.66
+   },
+   {
+    "text": "Source",
+    "ratio": 15.3
+   },
+   {
+    "text": "Web",
+    "ratio": 13.62
+   },
+   {
+    "text": ":",
+    "ratio": 13.62
+   },
+   {
+    "text": "Two IBM pages on cloud computi",
+    "ratio": 13.62
+   },
+   {
+    "text": "PDF",
+    "ratio": 13.62
+   },
+   {
+    "text": ":",
+    "ratio": 13.62
+   },
+   {
+    "text": "The K21 course PDF.",
+    "ratio": 13.62
+   },
+   {
+    "text": "SQL",
+    "ratio": 13.62
+   },
+   {
+    "text": ":",
+    "ratio": 13.62
+   },
+   {
+    "text": "The Chinook music store databa",
+    "ratio": 13.62
+   },
+   {
+    "text": "Ask",
+    "ratio": 7.93
+   },
+   {
+    "text": "Cloud computing is on-demand c",
+    "ratio": 13.62
+   },
+   {
+    "text": "<input>",
+    "ratio": 15.3
+   },
+   {
+    "text": "<button>",
+    "ratio": 7.93
+   }
+  ]
+ }
+]
