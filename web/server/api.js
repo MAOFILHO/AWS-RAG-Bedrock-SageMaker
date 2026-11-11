@@ -36,12 +36,37 @@ export function createApi(serviceUrl) {
     }
   });
 
+  const unavailable = (res) => res.status(502).json({ error: "The answer service is not available. Try again." });
+
+  // The PDF Source answers from the active PDF: the default one, or the last one uploaded.
+  const pdf = async (res, method, query = "", body) => {
+    try {
+      const reply = await fetch(`${serviceUrl}/pdf${query}`, { method, body, headers: body ? { "content-type": "application/pdf" } : {} });
+      if (reply.status === 400) return res.status(400).json(await reply.json());
+      if (!reply.ok) throw new Error(`service said ${reply.status}`);
+      res.json(await reply.json());
+    } catch {
+      unavailable(res);
+    }
+  };
+  app.get("/api/pdf", (req, res) => pdf(res, "GET"));
+  app.delete("/api/pdf", (req, res) => pdf(res, "DELETE"));
+  app.put("/api/pdf", express.raw({ type: () => true, limit: "25mb" }), (req, res) => {
+    const name = req.query.name;
+    if (typeof name !== "string" || !name.trim() || !Buffer.isBuffer(req.body) || !req.body.length) {
+      return res.status(400).json({ error: "Pick a PDF file first." });
+    }
+    pdf(res, "PUT", `?name=${encodeURIComponent(name)}`, req.body);
+  });
+
   app.use((req, res) => res.status(404).json({ error: "Not found." }));
 
   // The body parser reports a too-large or unparsable body here; nothing else may end the process.
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
-    if (error.type === "entity.too.large") return res.status(413).json({ error: "That question is too long." });
+    if (error.type === "entity.too.large") {
+      return res.status(413).json({ error: req.path === "/api/pdf" ? "That file is too big." : "That question is too long." });
+    }
     if (error.status === 400 || error.type === "entity.parse.failed") {
       return res.status(400).json({ error: "Type a question first." });
     }

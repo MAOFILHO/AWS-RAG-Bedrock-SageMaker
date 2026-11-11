@@ -1,0 +1,6 @@
+pr-security-review · PR #92 · diff origin/staging...f45a180 (.github/workflows/ci.yml, +15)
+Trigger: pull_request (not pull_request_target) · permissions: contents: read
+Repository credentials referenced by the workflow: none
+Actions pinned by commit SHA: actions/checkout 11d5960 = v4.4.0, actions/setup-node 49933ea = v4.4.0 (checked against tag refs)
+Untrusted input interpolated into run steps: none (static npm ci / npm test / npm run build)
+Findings kept: 0

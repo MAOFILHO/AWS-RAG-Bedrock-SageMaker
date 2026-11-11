@@ -91,3 +91,39 @@ def test_service_rejects_an_unknown_source():
     with TestClient(create_app(fake_models())) as client:
         reply = client.post("/ask", json={"question": "Hi?", "source": "csv"})
     assert reply.status_code == 400
+
+
+KIWIS = "Kiwis are flightless birds from New Zealand."
+
+
+def _upload(client, name="kiwis.pdf", content=None):
+    from fakes import text_pdf
+
+    return client.put("/pdf", params={"name": name}, content=text_pdf([KIWIS]) if content is None else content)
+
+
+def test_service_names_the_default_pdf_as_active():
+    with TestClient(create_app(fake_models())) as client:
+        assert client.get("/pdf").json() == {"name": "k21.pdf", "uploaded": False}
+
+
+def test_service_answers_from_an_uploaded_pdf_then_switches_back():
+    with TestClient(create_app(fake_models())) as client:
+        reply = _upload(client)
+        assert reply.status_code == 200
+        assert reply.json() == {"name": "kiwis.pdf", "uploaded": True}
+        assert client.get("/pdf").json() == {"name": "kiwis.pdf", "uploaded": True}
+        ask = {"question": "Which birds are flightless kiwis?", "source": "pdf"}
+        assert client.post("/ask", json=ask).json() == {"answer": KIWIS}
+        assert client.delete("/pdf").json() == {"name": "k21.pdf", "uploaded": False}
+        back = client.post("/ask", json={"question": QUESTION, "source": "pdf"}).json()
+        assert back == {"answer": rag_course.ask("pdf", QUESTION, models=fake_models())}
+
+
+def test_service_keeps_the_active_pdf_when_an_upload_is_not_a_pdf():
+    with TestClient(create_app(fake_models())) as client:
+        _upload(client)
+        reply = _upload(client, "notes.pdf", b"this is not a pdf")
+        assert reply.status_code == 400
+        assert reply.json() == {"error": "That file is not a readable PDF."}
+        assert client.get("/pdf").json() == {"name": "kiwis.pdf", "uploaded": True}
