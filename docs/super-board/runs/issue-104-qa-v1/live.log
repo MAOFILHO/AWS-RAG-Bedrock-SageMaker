@@ -1,0 +1,5 @@
+Live HTTP: real uvicorn on 127.0.0.1:8765, create_app(fake_models()), PUT /pdf @ 577e791
+over (limit+1 bytes)    10485761 bytes -> 413 {'error': 'That PDF is over the 10 MB limit.'} | saved: 0
+20 MB                   20971520 bytes -> 413 {'error': 'That PDF is over the 10 MB limit.'} | saved: 0
+exactly limit           10485760 bytes -> 200 {'name': 't.pdf', 'uploaded': True} | saved: 1
+under (small pdf)            591 bytes -> 200 {'name': 't.pdf', 'uploaded': True} | saved: 1

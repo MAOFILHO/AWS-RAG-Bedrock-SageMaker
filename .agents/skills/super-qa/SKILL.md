@@ -81,7 +81,7 @@ as `Bash(gh pr ready:*)` and is judged on intent, often denied. Measured 2026-11
 - Write message and body files first with the Write tool, then pass the path with `--body-file`.
 - Never pipe a `gh` write or the gate. Read the full output, or redirect it to a file in the scratchpad in a separate call.
 - Never put `gh pr ready`, `gh pr edit`, `gh pr comment`, `gh api` writes or the gate in a multi-line script.
-- Keep QA evidence out of the PR diff. Post raw test logs as an issue comment, or save them outside the repo. The merge gate scans added lines for `drop table` and similar words, and a verbose pytest log with such test names forces a human gate (cards #7 and #11, 2026-11-07). Before the push, run `.claude/bin/super-board-qa-log-check.py --base origin/<base>`; exit 1 names each log file to `git rm`.
+- Keep QA evidence out of the PR diff. Post raw test logs as an issue comment, or save them outside the repo. The merge gate scans added lines for `drop table` and similar words, and a verbose pytest log with such test names forces a human gate (cards #7 and #11, 2026-11-07). Before the push, run `.claude/bin/super-board-qa-log-check.py --base origin/<base>`; exit 1 names each log file: post its content as an issue comment first, then `git rm` it.
 
 ## Algorithm overview
 
