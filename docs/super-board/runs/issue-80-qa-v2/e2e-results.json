@@ -1,0 +1,27 @@
+[
+  {
+    "name": "AC1 notes.pdf refused in the panel",
+    "ok": true,
+    "detail": "That file is not a PDF."
+  },
+  {
+    "name": "AC2 big.pdf refused in the panel",
+    "ok": true,
+    "detail": "That PDF is over the 10 MB limit."
+  },
+  {
+    "name": "AC3 scan.pdf refused in the panel",
+    "ok": true,
+    "detail": "That PDF has no text to read. A scan will not work."
+  },
+  {
+    "name": "AC1 active PDF kept after a refusal",
+    "ok": true,
+    "detail": "kiwis.pdf (uploaded)"
+  },
+  {
+    "name": "no page errors",
+    "ok": true,
+    "detail": "0"
+  }
+]
