@@ -29,6 +29,10 @@ SOURCES = [
 ]
 
 
+# Same cap as the Node API (web/server/api.js), so a direct call to the service is held to it too.
+MAX_PDF_BYTES = 10 * 1024 * 1024
+
+
 class Question(BaseModel):
     question: str
     source: str = "pdf"
@@ -100,6 +104,8 @@ def create_app(
 
     @app.put("/pdf")
     def put_pdf(name: str, content: Annotated[bytes, Body(media_type="application/pdf")]):
+        if len(content) > MAX_PDF_BYTES:
+            return JSONResponse({"error": "That PDF is over the 10 MB limit."}, status_code=413)
         m = get_models()
         with uploads_lock:
             # The file is saved under a name we make up. The name the user sent is only shown back.

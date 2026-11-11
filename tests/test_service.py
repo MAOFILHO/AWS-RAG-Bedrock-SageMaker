@@ -339,3 +339,17 @@ def test_service_still_fails_on_an_error_that_is_not_aws_access():
     with TestClient(create_app(models), raise_server_exceptions=False) as client:
         reply = client.post("/ask", json={"question": QUESTION})
     assert reply.status_code == 500
+
+
+def test_service_refuses_a_pdf_over_10_mb_and_takes_one_just_under(tmp_path):
+    from fakes import text_pdf
+
+    limit = 10 * 1024 * 1024
+    with TestClient(_app(tmp_path)) as client:
+        reply = _upload(client, "big.pdf", b"%PDF" + b" " * (limit + 1 - 4))
+        assert reply.status_code == 413
+        assert reply.json() == {"error": "That PDF is over the 10 MB limit."}
+        assert client.get("/pdf").json() == {"name": "invoice.pdf", "uploaded": False}
+        assert not list((tmp_path / "uploads").glob("*.pdf"))
+        ok = _upload(client, "ok.pdf", text_pdf([KIWIS]) + b" " * (limit - len(text_pdf([KIWIS]))))
+        assert ok.status_code == 200

@@ -1,0 +1,4 @@
+$ cd web && npm ci && npm test && npm run build   (AWS creds unset) @ 577e791
+ Test Files  3 passed (3)
+      Tests  39 passed (39)
+✓ built in 376ms
