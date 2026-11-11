@@ -2,6 +2,7 @@
 
 import os
 import re
+import signal
 import stat
 import subprocess
 import time
@@ -62,6 +63,87 @@ def test_start_stops_the_other_parts_when_one_exits(tmp_path):
     time.sleep(0.5)
     started = [int(pid) for pid in pids.read_text().split()]
     assert len(started) == 2
+    for pid in started:
+        with pytest.raises(ProcessLookupError):
+            os.kill(pid, 0)
+
+
+def _fake_tools_one_part_dies(tmp_path, dying_exit):
+    """`uv` (the service) exits with `dying_exit` after a moment; `npm` runs (the API and the page) stay up."""
+    (tmp_path / "uv").write_text(f"#!/usr/bin/env bash\nsleep 1\nexit {dying_exit}\n")
+    (tmp_path / "npm").write_text('#!/usr/bin/env bash\n[[ "$*" == *" run "* ]] || exit 0\nexec sleep 60\n')
+    for tool in ("uv", "npm"):
+        (tmp_path / tool).chmod(0o755)
+    return {**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}"}
+
+
+def test_start_exits_with_the_code_of_the_part_that_died(tmp_path):
+    env = _fake_tools_one_part_dies(tmp_path, 3)
+    result = subprocess.run(["bash", str(START)], env=env, capture_output=True, timeout=20)
+    assert result.returncode == 3
+
+
+def test_start_exits_non_zero_when_a_part_exits_cleanly_on_its_own(tmp_path):
+    env = _fake_tools_one_part_dies(tmp_path, 0)
+    result = subprocess.run(["bash", str(START)], env=env, capture_output=True, timeout=20)
+    assert result.returncode != 0
+
+
+def test_start_exits_zero_on_ctrl_c_and_stops_every_part(tmp_path):
+    pids = tmp_path / "pids"
+    (tmp_path / "uv").write_text(f'#!/usr/bin/env bash\necho $$ >> "{pids}"\nexec sleep 60\n')
+    (tmp_path / "npm").write_text(f'#!/usr/bin/env bash\n[[ "$*" == *" run "* ]] || exit 0\necho $$ >> "{pids}"\nexec sleep 60\n')
+    for tool in ("uv", "npm"):
+        (tmp_path / tool).chmod(0o755)
+    env = {**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}"}
+    proc = subprocess.Popen(["bash", str(START)], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    deadline = time.time() + 15
+    while time.time() < deadline and (not pids.exists() or len(pids.read_text().split()) < 3):
+        time.sleep(0.1)
+    started = [int(pid) for pid in pids.read_text().split()]
+    assert len(started) == 3
+    proc.send_signal(signal.SIGINT)
+    assert proc.wait(timeout=15) == 0
+    time.sleep(0.5)
+    for pid in started:
+        with pytest.raises(ProcessLookupError):
+            os.kill(pid, 0)
+
+
+def _start_with_long_running_parts(tmp_path, **popen_kwargs):
+    """Start start.sh with three fake parts that record their pid and stay up; return the process and the pids."""
+    pids = tmp_path / "pids"
+    (tmp_path / "uv").write_text(f'#!/usr/bin/env bash\necho "uv $$" >> "{pids}"\nexec sleep 60\n')
+    (tmp_path / "npm").write_text(f'#!/usr/bin/env bash\n[[ "$*" == *" run "* ]] || exit 0\necho "npm $$" >> "{pids}"\nexec sleep 60\n')
+    for tool in ("uv", "npm"):
+        (tmp_path / tool).chmod(0o755)
+    env = {**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}"}
+    proc = subprocess.Popen(["bash", str(START)], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **popen_kwargs)
+    deadline = time.time() + 15
+    while time.time() < deadline and (not pids.exists() or len(pids.read_text().splitlines()) < 3):
+        time.sleep(0.1)
+    started = {int(pid): tool for tool, pid in (line.split() for line in pids.read_text().splitlines())}
+    assert len(started) == 3
+    return proc, started
+
+
+def test_start_exits_non_zero_when_a_part_is_killed_on_purpose(tmp_path):
+    proc, started = _start_with_long_running_parts(tmp_path)
+    service = next(pid for pid, tool in started.items() if tool == "uv")
+    os.kill(service, signal.SIGKILL)
+    assert proc.wait(timeout=15) != 0
+    time.sleep(0.5)
+    for pid in started:
+        with pytest.raises(ProcessLookupError):
+            os.kill(pid, 0)
+
+
+def test_start_exits_zero_when_ctrl_c_reaches_the_whole_terminal_group(tmp_path):
+    """A real Ctrl-C sends SIGINT to every process in the foreground group, not only to start.sh."""
+    proc, started = _start_with_long_running_parts(tmp_path, start_new_session=True)
+    os.killpg(proc.pid, signal.SIGINT)
+    assert proc.wait(timeout=15) == 0
+    time.sleep(0.5)
     for pid in started:
         with pytest.raises(ProcessLookupError):
             os.kill(pid, 0)
