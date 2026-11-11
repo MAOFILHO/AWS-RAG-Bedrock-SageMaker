@@ -96,6 +96,10 @@ def test_service_rejects_an_unknown_source():
 KIWIS = "Kiwis are flightless birds from New Zealand."
 
 
+def _app(tmp_path):
+    return create_app(fake_models(), uploads=tmp_path / "uploads")
+
+
 def _upload(client, name="kiwis.pdf", content=None):
     from fakes import text_pdf
 
@@ -127,3 +131,47 @@ def test_service_keeps_the_active_pdf_when_an_upload_is_not_a_pdf():
         assert reply.status_code == 400
         assert reply.json() == {"error": "That file is not a readable PDF."}
         assert client.get("/pdf").json() == {"name": "kiwis.pdf", "uploaded": True}
+
+
+def test_service_refuses_a_pdf_with_no_text(tmp_path):
+    from fakes import text_pdf
+
+    with TestClient(_app(tmp_path)) as client:
+        _upload(client)
+        reply = _upload(client, "scan.pdf", text_pdf([]))
+        assert reply.status_code == 400
+        assert reply.json() == {"error": "That PDF has no text to read. A scan will not work."}
+        assert client.get("/pdf").json() == {"name": "kiwis.pdf", "uploaded": True}
+    assert len(list((tmp_path / "uploads").iterdir())) == 1
+
+
+def test_service_never_uses_the_file_name_as_a_path(tmp_path):
+    with TestClient(_app(tmp_path)) as client:
+        reply = _upload(client, "../x.pdf")
+        assert reply.json() == {"name": "x.pdf", "uploaded": True}
+        _upload(client, "..\\..\\y.pdf")
+        assert client.get("/pdf").json()["name"] == "y.pdf"
+    assert not (tmp_path / "x.pdf").exists()
+    assert [p.parent for p in tmp_path.rglob("*.pdf")] == [tmp_path / "uploads"]
+
+
+def test_service_keeps_only_the_newest_uploaded_file(tmp_path):
+    from fakes import text_pdf
+
+    with TestClient(_app(tmp_path)) as client:
+        _upload(client, "one.pdf")
+        first = list((tmp_path / "uploads").iterdir())
+        _upload(client, "two.pdf", text_pdf(["Owls hunt at night."]))
+        second = list((tmp_path / "uploads").iterdir())
+        assert len(first) == 1 and len(second) == 1 and first != second
+        client.delete("/pdf")
+    assert list((tmp_path / "uploads").iterdir()) == []
+
+
+def test_upload_folder_is_ignored_by_git():
+    import subprocess
+    from rag_course import service
+
+    root = service.DEFAULT_UPLOADS.parent
+    check = subprocess.run(["git", "check-ignore", "-q", f"{service.DEFAULT_UPLOADS.name}/x.pdf"], cwd=root)
+    assert check.returncode == 0

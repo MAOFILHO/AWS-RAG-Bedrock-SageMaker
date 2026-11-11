@@ -11,6 +11,10 @@ from rag_course.core import PDF_PROMPT, Chunk, Models, SourceError, VectorStore,
 DEFAULT_PDF = Path(__file__).resolve().parents[2] / "data" / "k21.pdf"
 
 
+class NoTextError(SourceError):
+    """The PDF opens but holds no text, such as a scan."""
+
+
 def load_pdf(path: Path) -> list[str]:
     try:
         return [page.extract_text() for page in PdfReader(path).pages]
@@ -26,7 +30,7 @@ def chunks(path: Path = DEFAULT_PDF) -> list[Chunk]:
         for text in splitter.split_text(page)
     ]
     if not found:
-        raise SourceError(f"no text found in PDF: {path}")
+        raise NoTextError(f"no text found in PDF: {path}")
     return found
 
 
