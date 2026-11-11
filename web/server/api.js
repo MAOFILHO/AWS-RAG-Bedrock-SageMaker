@@ -29,7 +29,12 @@ export function createApi(serviceUrl) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ question, source }),
       });
-      if (!reply.ok) throw new Error(`service said ${reply.status}`);
+      if (!reply.ok) {
+        // A plain error the service chose to send goes to the page as it is; anything else is the generic line.
+        const message = await reply.json().then((body) => body?.error, () => undefined);
+        if (typeof message === "string" && message) return res.status(502).json({ error: message });
+        throw new Error(`service said ${reply.status}`);
+      }
       res.json({ answer: (await reply.json()).answer });
     } catch {
       res.status(502).json({ error: "The answer service is not available. Try again." });

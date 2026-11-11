@@ -13,7 +13,7 @@ from rag_course import pdf as pdf_pipeline
 from rag_course import evaluate as evaluation
 from rag_course import report
 from rag_course import sql
-from rag_course.core import SourceError
+from rag_course.core import SourceError, aws_access_message
 
 app = typer.Typer(help="Ask questions over web pages, a PDF or a SQL database.")
 
@@ -38,11 +38,8 @@ def _aws_access():
     """Turn a missing AWS login, region or profile into one plain line and exit 2."""
     try:
         yield
-    except (NoCredentialsError, PartialCredentialsError, NoRegionError):
-        typer.echo("Error: no AWS access found. Run `aws configure`, enable Bedrock model access, then try again.", err=True)
-        raise typer.Exit(code=2)
-    except ProfileNotFound as error:
-        typer.echo(f"Error: AWS profile {error.kwargs['profile']!r} not found. Run `aws configure --profile {error.kwargs['profile']}` or fix AWS_PROFILE.", err=True)
+    except (NoCredentialsError, PartialCredentialsError, NoRegionError, ProfileNotFound) as error:
+        typer.echo(aws_access_message(error), err=True)
         raise typer.Exit(code=2)
 
 

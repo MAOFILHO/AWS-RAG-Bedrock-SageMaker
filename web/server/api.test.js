@@ -235,3 +235,12 @@ test("refuses a PDF over 10 MB and names the limit, and takes one just under it"
   ok.write("%PDF-");
   expect((await fetch(`${api}/api/pdf?name=ok.pdf`, { method: "PUT", body: ok })).status).toBe(200);
 });
+
+test("passes a plain error from the Python service through unchanged", async () => {
+  const message = "Error: no AWS access found. Run `aws configure`, enable Bedrock model access, then try again.";
+  const service = await fakeService((req, res) => res.writeHead(503, { "content-type": "application/json" }).end(JSON.stringify({ error: message })));
+  const api = await listen(createApi(service));
+  const reply = await post(api, { question: "Hi?" });
+  expect(reply.status).toBe(502);
+  expect(await reply.json()).toEqual({ error: message });
+});
