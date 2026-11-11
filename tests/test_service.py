@@ -111,8 +111,8 @@ def test_service_names_the_default_pdf_as_active():
         assert client.get("/pdf").json() == {"name": "k21.pdf", "uploaded": False}
 
 
-def test_service_answers_from_an_uploaded_pdf_then_switches_back():
-    with TestClient(create_app(fake_models())) as client:
+def test_service_answers_from_an_uploaded_pdf_then_switches_back(tmp_path):
+    with TestClient(_app(tmp_path)) as client:
         reply = _upload(client)
         assert reply.status_code == 200
         assert reply.json() == {"name": "kiwis.pdf", "uploaded": True}
@@ -124,8 +124,8 @@ def test_service_answers_from_an_uploaded_pdf_then_switches_back():
         assert back == {"answer": rag_course.ask("pdf", QUESTION, models=fake_models())}
 
 
-def test_service_keeps_the_active_pdf_when_an_upload_is_not_a_pdf():
-    with TestClient(create_app(fake_models())) as client:
+def test_service_keeps_the_active_pdf_when_an_upload_is_not_a_pdf(tmp_path):
+    with TestClient(_app(tmp_path)) as client:
         _upload(client)
         reply = _upload(client, "notes.pdf", b"this is not a pdf")
         assert reply.status_code == 400
