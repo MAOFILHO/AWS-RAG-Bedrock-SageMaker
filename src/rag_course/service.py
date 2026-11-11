@@ -6,6 +6,7 @@ The PDF Source answers from the active PDF: the default one, or the last one upl
 Run it with `uv run uvicorn rag_course.service:create_app --factory --port 8000`.
 """
 
+import threading
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -67,6 +68,8 @@ def create_app(
         yield
 
     app = FastAPI(lifespan=lifespan)
+    # One upload or reset at a time: the sweep must not delete a file another upload has saved but not yet opened.
+    uploads_lock = threading.Lock()
 
     def answerer(source: str) -> Callable[[str], str]:
         if source not in app.state.answerers:
@@ -98,30 +101,32 @@ def create_app(
     @app.put("/pdf")
     def put_pdf(name: str, content: Annotated[bytes, Body(media_type="application/pdf")]):
         m = get_models()
-        # The file is saved under a name we make up. The name the user sent is only shown back.
-        uploads.mkdir(parents=True, exist_ok=True)
-        path = uploads / f"{uuid.uuid4().hex}.pdf"
-        path.write_bytes(content)
-        try:
-            store = pdf.store(m, path)
-        except BaseException as error:
-            path.unlink(missing_ok=True)
-            if isinstance(error, pdf.NoTextError):
-                return JSONResponse({"error": "That PDF has no text to read. A scan will not work."}, status_code=400)
-            if isinstance(error, SourceError):
-                return JSONResponse({"error": "That file is not a readable PDF."}, status_code=400)
-            raise
-        clear_uploads(keep=path)
-        app.state.answerers["pdf"] = lambda question: pdf.answer(question, store, m)
-        app.state.pdf_name = name.replace("\\", "/").rsplit("/", 1)[-1] or "upload.pdf"
-        return active_pdf()
+        with uploads_lock:
+            # The file is saved under a name we make up. The name the user sent is only shown back.
+            uploads.mkdir(parents=True, exist_ok=True)
+            path = uploads / f"{uuid.uuid4().hex}.pdf"
+            path.write_bytes(content)
+            try:
+                store = pdf.store(m, path)
+            except BaseException as error:
+                path.unlink(missing_ok=True)
+                if isinstance(error, pdf.NoTextError):
+                    return JSONResponse({"error": "That PDF has no text to read. A scan will not work."}, status_code=400)
+                if isinstance(error, SourceError):
+                    return JSONResponse({"error": "That file is not a readable PDF."}, status_code=400)
+                raise
+            clear_uploads(keep=path)
+            app.state.answerers["pdf"] = lambda question: pdf.answer(question, store, m)
+            app.state.pdf_name = name.replace("\\", "/").rsplit("/", 1)[-1] or "upload.pdf"
+            return active_pdf()
 
     @app.delete("/pdf")
     def reset_pdf():
-        clear_uploads()
-        app.state.answerers["pdf"] = app.state.default_pdf
-        app.state.pdf_name = pdf.DEFAULT_PDF.name
-        return active_pdf()
+        with uploads_lock:
+            clear_uploads()
+            app.state.answerers["pdf"] = app.state.default_pdf
+            app.state.pdf_name = pdf.DEFAULT_PDF.name
+            return active_pdf()
 
     @app.post("/ask")
     def ask(body: Question):

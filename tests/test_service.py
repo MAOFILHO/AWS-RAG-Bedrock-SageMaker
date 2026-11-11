@@ -179,6 +179,44 @@ def test_service_deletes_an_upload_left_by_an_earlier_run(tmp_path):
         assert len(list((tmp_path / "uploads").iterdir())) == 1
 
 
+def test_service_keeps_both_uploads_working_when_two_arrive_at_once(tmp_path, monkeypatch):
+    import threading
+    import time
+
+    from rag_course import pdf
+    from fakes import text_pdf
+
+    uploads = tmp_path / "uploads"
+    real_store, calls, counter = pdf.store, [], threading.Lock()
+
+    def wait_for(count):
+        end = time.monotonic() + 0.5
+        while len(list(uploads.glob("*.pdf"))) != count and time.monotonic() < end:
+            time.sleep(0.01)
+
+    def store(models, path=pdf.DEFAULT_PDF):
+        # Forces the bad order: the first upload waits for the second file to land, the second waits for the first sweep.
+        if path.parent != uploads:
+            return real_store(models, path)
+        with counter:
+            calls.append(path)
+            first = len(calls) == 1
+        wait_for(2) if first else wait_for(1)
+        return real_store(models, path)
+
+    monkeypatch.setattr(pdf, "store", store)
+    with TestClient(_app(tmp_path), raise_server_exceptions=False) as client:
+        codes = []
+        threads = [
+            threading.Thread(target=lambda n=n: codes.append(_upload(client, n, text_pdf([n])).status_code))
+            for n in ("one.pdf", "two.pdf")
+        ]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+        assert codes == [200, 200]
+        assert len(list(uploads.iterdir())) == 1
+
+
 def test_service_deletes_the_saved_file_when_the_embed_call_fails(tmp_path):
     from rag_course.core import Models
     from fakes import FakeAnswerModel, FakeEmbeddings
