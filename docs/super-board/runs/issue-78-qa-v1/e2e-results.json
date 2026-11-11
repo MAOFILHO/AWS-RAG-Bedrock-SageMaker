@@ -1,0 +1,40 @@
+{
+  "ac1": {
+    "ok": true,
+    "detail": [
+      "What is RAG?PDFPDF answer to: What is RAG?",
+      "How many customers?SQLSQL answer to: How many customers?",
+      "Top artist?SQLSQL answer to: Top artist?"
+    ]
+  },
+  "consoleErrors-desktop": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "ac5": {
+    "ok": true,
+    "detail": "listitems after Clear"
+  },
+  "consoleErrors-tablet": [],
+  "consoleErrors-mobile": [],
+  "ac2": {
+    "ok": true,
+    "detail": {
+      "status": "Thinking...",
+      "disabled": true
+    }
+  },
+  "ac3": {
+    "ok": true,
+    "detail": {
+      "alert": "The answer service is not available. Try again.",
+      "kept": 1,
+      "typed": "Will this fail?",
+      "after": 2,
+      "alertGone": true
+    }
+  },
+  "ac4": {
+    "ok": true,
+    "detail": "No AWS access found. Run `aws configure`, enable Bedrock model access, then try again."
+  }
+}

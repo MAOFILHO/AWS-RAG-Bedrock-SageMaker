@@ -96,6 +96,20 @@ test("shows a loading state and turns the send button off while a question runs"
   expect((screen.getByRole("button", { name: "Send" }) as HTMLButtonElement).disabled).toBe(false);
 });
 
+test("pressing Enter again while a question runs does not send it twice", async () => {
+  let finish: (value: Response) => void = () => {};
+  const fetchMock = serve(() => new Promise<Response>((resolve) => (finish = resolve)));
+  vi.stubGlobal("fetch", fetchMock);
+  render(<App />);
+  await ask("Slow?");
+  await screen.findByRole("status");
+  await userEvent.type(screen.getByRole("textbox", { name: /question/i }), "{Enter}");
+  finish(new Response(JSON.stringify({ answer: "Done." }), { status: 200 }));
+  await screen.findByText("Done.");
+  expect(fetchMock.mock.calls.filter(([url]) => url === "/api/ask")).toHaveLength(1);
+  expect(screen.getAllByRole("listitem")).toHaveLength(1);
+});
+
 test("a failed question keeps the thread, shows one line and allows a retry", async () => {
   let calls = 0;
   vi.stubGlobal(
