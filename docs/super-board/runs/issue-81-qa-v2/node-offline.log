@@ -1,0 +1,10 @@
+
+ Test Files  3 passed (3)
+      Tests  36 passed (36)
+   Start at  08:54:47
+   Duration  997ms (tests 52%, environment 36%, import 8%, transform 4%)
+
+dist/assets/index-imBRq7PF.css    2.37 kB │ gzip:  0.95 kB
+dist/assets/index-27FkyS4X.js   222.40 kB │ gzip: 69.67 kB
+
+✓ built in 391ms
