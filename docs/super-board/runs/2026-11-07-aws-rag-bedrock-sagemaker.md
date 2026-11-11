@@ -74,3 +74,4 @@
 | #105 | build:advanced → qa:advanced → review:bounced | bounced | Ready | PR #112. Review R1: theme.test.ts:54 strips var() with its fallback, so a bad fallback color passes. Rebuild 1 pending. |
 | #104 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #113 merged to staging 207a1f2 through the gate. The service PUT /pdf now refuses a PDF over 10 MB. 265 pytest, 39 vitest. |
 | #105 | build:advanced → qa:advanced → review:bounced | bounced | Ready | PR #112 at 39b180c. Round 1 fix held (R1). R2: the token test fails falsely on border-collapse and background url() lines. Rebuild 2 of 3 pending. |
+| #105 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #112 merged to staging fae2a6d through the gate at f03890b, after rebuild round 3. The token test now handles var() fallbacks, border-collapse and url() lines, and the label test checks the accessible name. 255 pytest, 40 vitest. |
