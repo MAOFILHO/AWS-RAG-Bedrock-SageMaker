@@ -53,3 +53,4 @@
 | #76 | build:advanced → qa:advanced → review:human-gate | merged | Done | PR #87 merged to staging 1b6d235 after the owner approved the gate (exit 7: the words DROP TABLE in the AC4 refusal test, no schema change). 232 pytest, 16 vitest. |
 | #78 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #89 merged to staging 029cd19 through the gate at eacb22e. 232 pytest, 22 vitest. AC4 (cause of a missing AWS access) is tracked in #91. |
 | #77 | build:advanced → qa:advanced → review:human-gate | blocked | Blocked | PR #90 clean at 92a4209, 5/5 AC, 21 vitest. Merge gate exit 7: 1284 changed lines, over the limit, 1066 are QA screenshots. Needs the owner: merge PR #90 or comment done. |
+| #88 | build:advanced → qa:advanced → review:advanced | merged | Done | PR #92 merged to staging dd3cafc through the gate at ad25c76. 235 pytest, 22 vitest, build OK. CI now runs the web tests and build in a second job. Check not set as required. |
