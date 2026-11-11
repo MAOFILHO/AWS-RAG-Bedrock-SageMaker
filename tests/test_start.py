@@ -4,7 +4,10 @@ import os
 import re
 import stat
 import subprocess
+import time
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 START = ROOT / "scripts" / "start.sh"
@@ -45,6 +48,23 @@ def test_start_ports_come_from_settings(tmp_path):
     assert "--port 9000" in calls
     assert "PORT=9001 SERVICE_URL=http://127.0.0.1:9000" in calls
     assert "--port 9002 --strictPort" in calls and "RAG_API_PORT=9001" in calls
+
+
+def test_start_stops_the_other_parts_when_one_exits(tmp_path):
+    """The service fails at once; start.sh must return and stop the API and the page."""
+    pids = tmp_path / "pids"
+    (tmp_path / "uv").write_text("#!/usr/bin/env bash\nexit 1\n")
+    (tmp_path / "npm").write_text(f'#!/usr/bin/env bash\n[[ "$*" == *" run "* ]] || exit 0\necho $$ >> "{pids}"\nexec sleep 60\n')
+    for tool in ("uv", "npm"):
+        (tmp_path / tool).chmod(0o755)
+    env = {**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}"}
+    subprocess.run(["bash", str(START)], env=env, capture_output=True, timeout=20)
+    time.sleep(0.5)
+    started = [int(pid) for pid in pids.read_text().split()]
+    assert len(started) == 2
+    for pid in started:
+        with pytest.raises(ProcessLookupError):
+            os.kill(pid, 0)
 
 
 def test_page_proxy_follows_the_api_port_setting():
