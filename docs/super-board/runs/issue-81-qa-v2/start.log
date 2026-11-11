@@ -1,0 +1,27 @@
+Open http://localhost:18102 (Ctrl+C stops all three parts)
+npm notice run api
+npm notice run dev
+npm notice run node server/index.js
+npm notice run vite --port 18102 --strictPort
+API on http://127.0.0.1:18101
+
+  VITE v8.3.7  ready in 161 ms
+
+  ➜  Local:   http://localhost:18102/
+  ➜  Network: use --host to expose
+INFO:     Started server process [23364]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:18100 (Press CTRL+C to quit)
+INFO:     127.0.0.1:56297 - "GET /sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56297 - "GET /pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56308 - "GET /sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56297 - "GET /pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56308 - "GET /sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56297 - "GET /pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56308 - "GET /sources HTTP/1.1" 200 OK
+Terminated: 15             sleep 1
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [23364]

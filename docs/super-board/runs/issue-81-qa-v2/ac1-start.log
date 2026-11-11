@@ -1,0 +1,8 @@
+startup_s 4.2 sources [{'id': 'web', 'name': 'Web', 'description': 'Two IBM pages on cloud computing and data science.'}, {'id': 'pdf', 'name': 'PDF', 'description': 'The K21 course PDF.'}, {'id': 'sql', 'name': 'SQL', 'description': 'The Chinook music store database, read-only.'}]
+page_has_root True
+desktop True
+tablet True
+mobile True
+port 18100 free_after_stop True
+port 18101 free_after_stop True
+port 18102 free_after_stop True
