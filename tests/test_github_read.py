@@ -59,6 +59,18 @@ def test_slurp_with_jq_equals_form_is_rejected(tmp_path):
     assert not halt_file.exists()
 
 
+def test_slurp_with_short_q_is_rejected_like_jq(tmp_path):
+    result, calls, halt_file = run_helper(
+        tmp_path, "api", "repos/o/r/issues/1/comments", "--paginate", "--slurp", "-q", "."
+    )
+    assert result.returncode == 64
+    assert calls == 0
+    assert not halt_file.exists()
+    hints = [line for line in result.stderr.splitlines() if line.strip()]
+    assert len(hints) == 1
+    assert "rate-limit-etiquette.md" in hints[0]
+
+
 def test_paginate_alone_proceeds(tmp_path):
     result, calls, halt_file = run_helper(
         tmp_path, "api", "repos/o/r/issues/1/comments", "--paginate", "--slurp"
