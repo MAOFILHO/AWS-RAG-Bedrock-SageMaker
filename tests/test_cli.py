@@ -1,3 +1,6 @@
+import re
+
+import pytest
 from typer.testing import CliRunner
 
 from rag_course.cli import app
@@ -66,7 +69,8 @@ def test_version_reads_installed_metadata_not_a_copied_string(monkeypatch):
 def test_help_lists_version():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "--version" in result.output
+    # Typer forces colour under GitHub Actions, which splits "--version" with ANSI codes.
+    assert "--version" in re.sub(r"\x1b\[[0-9;]*m", "", result.output)
 
 
 def test_ask_pdf_missing_path_errors_before_any_model_call(monkeypatch, tmp_path):
@@ -265,22 +269,25 @@ def test_chat_pdf_loads_once_and_retrieves_with_the_same_k_as_rag_ask(monkeypatc
 
 
 class _NoAwsAccess:
+    def __init__(self, error=None):
+        self.error = error
+
     def embed(self, texts):
         from botocore.exceptions import NoCredentialsError
 
-        raise NoCredentialsError()
+        raise self.error or NoCredentialsError()
 
     def answer(self, prompt):
         return self.embed([prompt])
 
 
-def _without_aws_access(monkeypatch):
+def _without_aws_access(monkeypatch, error=None):
     import rag_course
     from rag_course import evaluate, web
     from rag_course.core import Models
     from fakes import saved_page
 
-    models = Models(answer=_NoAwsAccess(), embed=_NoAwsAccess())
+    models = Models(answer=_NoAwsAccess(error), embed=_NoAwsAccess(error))
     monkeypatch.setattr(rag_course, "bedrock_models", lambda settings: models)
     monkeypatch.setattr(evaluate, "bedrock_models", lambda settings: models)
     monkeypatch.setattr(web, "fetch_page", saved_page)
@@ -310,3 +317,37 @@ def test_chat_without_aws_access_prints_one_plain_line(monkeypatch):
 def test_eval_without_aws_access_prints_one_plain_line(monkeypatch, tmp_path):
     _without_aws_access(monkeypatch)
     _assert_one_plain_line(runner.invoke(app, ["eval", "--out", str(tmp_path)]))
+
+
+@pytest.mark.parametrize("content", [None, "", "[]"])
+def test_eval_with_an_empty_golden_set_prints_one_line_and_exits_2(monkeypatch, tmp_path, content):
+    from rag_course import evaluate
+
+    golden_dir = tmp_path / "golden"
+    golden_dir.mkdir()
+    if content is not None:
+        (golden_dir / "web.json").write_text(content)
+    run_eval = evaluate.run_eval
+    monkeypatch.setattr(evaluate, "run_eval", lambda: run_eval(golden_dir=golden_dir))
+    result = runner.invoke(app, ["eval", "--out", str(tmp_path / "out")])
+    assert result.exit_code == 2
+    lines = result.stderr.strip().splitlines()
+    assert len(lines) == 1 and "no golden cases found" in lines[0]
+    assert "Traceback" not in result.output
+    assert isinstance(result.exception, SystemExit)
+
+
+def test_wrong_aws_profile_prints_one_plain_line_naming_the_profile(monkeypatch, tmp_path):
+    from botocore.exceptions import ProfileNotFound
+
+    monkeypatch.setenv("AWS_PROFILE", "does-not-exist")
+    _without_aws_access(monkeypatch, ProfileNotFound(profile="does-not-exist"))
+    results = [
+        runner.invoke(app, ["ask", "What is cloud computing?", "--source", "web"]),
+        runner.invoke(app, ["chat", "--source", "web"], input="What is cloud computing?\n"),
+        runner.invoke(app, ["eval", "--out", str(tmp_path)]),
+    ]
+    for result in results:
+        _assert_one_plain_line(result)
+        assert "does-not-exist" in result.stderr
+        assert "ProfileNotFound" not in result.output

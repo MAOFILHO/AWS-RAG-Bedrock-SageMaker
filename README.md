@@ -4,6 +4,7 @@
 ![AWS](https://img.shields.io/badge/AWS-Bedrock-FF9900?logo=amazon-aws&logoColor=white)
 ![uv](https://img.shields.io/badge/uv-managed-6C3FC5)
 ![Tests](https://img.shields.io/badge/Tests-offline-green)
+[![CI](https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/actions/workflows/ci.yml/badge.svg)](https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/actions/workflows/ci.yml)
 
 Ask questions about web pages, a PDF or a SQL database from the terminal. Answers come from Amazon Nova Lite on AWS Bedrock. For web pages and the PDF, the answer is grounded in text retrieved with Titan Text Embeddings v2. For the SQL database, the model writes a read-only query and answers from its rows. When the Source holds no answer, the model says so.
 
@@ -213,6 +214,24 @@ uv run rag ask --source sql "How many customers are there?"
 uv run rag chat --source pdf
 ```
 
+### Ask from the browser
+
+Three parts: a Python service (lists the three Sources; opens the PDF at start and the web and SQL Sources on first use), a Node.js API and a React page. One command starts all three and prints the page address, http://localhost:5173. It needs AWS access, like `rag ask`.
+
+```bash
+scripts/start.sh
+```
+
+| Part | Port |
+|---|---|
+| Python service | 8000 |
+| Node.js API | 3001 |
+| React page | 5173 |
+
+Ctrl+C stops all three. The first run also installs the page's packages.
+
+Cost: starting the service embeds the bundled PDF once. Each upload embeds every chunk of your PDF with Titan Text Embeddings v2 and each question calls Nova Lite, so a typical PDF and question cost well under a cent. See [Cost estimate](#cost-estimate).
+
 ### Evaluate
 
 `rag eval` scores the golden question sets, writes reports and exits with code 1 when a threshold fails. It calls real Bedrock, including a judge model, so it costs a few cents per run.
@@ -240,6 +259,9 @@ All optional. The defaults match the notebooks.
 | `RAG_MODEL_ID` | `amazon.nova-lite-v1:0` | Answer model |
 | `RAG_EMBED_MODEL_ID` | `amazon.titan-embed-text-v2:0` | Embedding model |
 | `AWS_REGION` | `us-east-1` | Bedrock region |
+| `RAG_SERVICE_PORT` | `8000` | Port of the Python service for `scripts/start.sh` |
+| `RAG_API_PORT` | `3001` | Port of the Node.js API for `scripts/start.sh` |
+| `RAG_UI_PORT` | `5173` | Port of the page for `scripts/start.sh` |
 | `LANGSMITH_API_KEY` | unset | Turns on LangSmith tracing when set |
 
 ### Optional: LangSmith tracing
@@ -270,7 +292,9 @@ Tests need no AWS access. A fake answer model and a fake embedding model replace
 uv run pytest
 ```
 
-Live tests need AWS access. They call real Bedrock and cost a few cents. Run them by hand:
+`scripts/check.sh` runs every Offline test (Python, Node API, React) in one command, with the AWS variables removed.
+
+Live tests need AWS access. They call real Bedrock and cost a few cents. They include one that asks a question through the page's path and through `rag ask` and checks the answers match. Run them by hand:
 
 ```bash
 uv run pytest -m live
@@ -280,6 +304,8 @@ uv run pytest -m live
 |---|---|---|
 | Bedrock wrappers | `test_bedrock.py` | Request shapes, checked with botocore's Stubber |
 | CLI and README | `test_cli.py`, `test_readme.py` | Commands, exit codes, and that every README command parses |
+| Start command | `test_start.py` | Ports, the three commands and the README notes |
+| Web service | `test_service.py`, `web/server/api.test.js`, `web/src/App.test.tsx` | The service, the Node API and the page, with fake models |
 | Sources | `test_web.py`, `test_pdf.py`, `test_sql.py` | Chunking, loading and the read-only SQL path |
 | Safety and data quality | `test_safety.py`, `test_data_quality.py` | Refusals, destructive questions, empty and odd input |
 | Evaluation | `test_eval.py`, `test_golden.py` | Scores, judge settings, cost sums and the golden sets |

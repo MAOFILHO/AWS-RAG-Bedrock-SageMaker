@@ -1,0 +1,10 @@
+
+ Test Files  2 passed (2)
+      Tests  33 passed (33)
+   Start at  08:36:43
+   Duration  1.04s (tests 67%, environment 19%, import 10%, transform 4%)
+
+dist/index.html                  0.32 kB │ gzip:  0.24 kB
+dist/assets/index-C6qZxSQE.js  222.25 kB │ gzip: 69.62 kB
+
+✓ built in 65ms
