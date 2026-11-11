@@ -1,0 +1,5 @@
+$ uv sync --frozen && uv run pytest   (AWS creds unset, AWS_CONFIG_FILE=/dev/null) @ 577e791
+tests/test_tracing.py ........                                           [ 97%]
+tests/test_web.py ......                                                 [100%]
+
+===================== 265 passed, 26 deselected in 20.02s ======================
