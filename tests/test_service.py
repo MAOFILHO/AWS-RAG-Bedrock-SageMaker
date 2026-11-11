@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 import rag_course
@@ -240,3 +241,63 @@ def test_service_ask_with_a_missing_profile_names_it(monkeypatch):
         reply = client.post("/ask", json={"question": QUESTION, "source": "pdf"})
     assert reply.status_code == 503
     assert "'k21'" in reply.json()["error"]
+
+
+def _no_profile(monkeypatch):
+    # The real boto3 path: a profile that does not exist fails in `boto3.client`, before any model call.
+    monkeypatch.setenv("AWS_PROFILE", "nope-k21")
+    monkeypatch.setenv("AWS_CONFIG_FILE", "/dev/null")
+    monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", "/dev/null")
+
+
+def test_service_starts_and_names_a_missing_profile_when_boto3_cannot_find_it(monkeypatch):
+    _no_profile(monkeypatch)
+    for source in ("pdf", "web", "sql"):
+        with TestClient(create_app()) as client:
+            reply = client.post("/ask", json={"question": QUESTION, "source": source})
+        assert reply.status_code == 503
+        assert "'nope-k21'" in reply.json()["error"]
+
+
+def test_service_opens_the_pdf_on_the_next_question_once_access_works():
+    from botocore.exceptions import NoCredentialsError
+    from rag_course.core import Models
+
+    good = fake_models()
+    state = {"down": True}
+
+    def flaky(call):
+        def run(*args):
+            if state["down"]:
+                raise NoCredentialsError()
+            return call(*args)
+
+        return run
+
+    models = Models(answer=good.answer, embed=type("E", (), {"embed": staticmethod(flaky(good.embed.embed))})())
+    with TestClient(create_app(models)) as client:
+        assert client.post("/ask", json={"question": QUESTION}).status_code == 503
+        state["down"] = False
+        reply = client.post("/ask", json={"question": QUESTION})
+    assert reply.status_code == 200
+
+
+def test_service_still_fails_on_an_error_that_is_not_aws_access():
+    from rag_course.core import Models
+
+    class Broken:
+        def embed(self, texts):
+            raise RuntimeError("boom")
+
+        def answer(self, prompt):
+            raise RuntimeError("boom")
+
+    with pytest.raises(RuntimeError):
+        with TestClient(create_app(Models(answer=Broken(), embed=Broken()))):
+            pass
+
+    good = fake_models()
+    models = Models(answer=Broken(), embed=good.embed)
+    with TestClient(create_app(models), raise_server_exceptions=False) as client:
+        reply = client.post("/ask", json={"question": QUESTION})
+    assert reply.status_code == 500

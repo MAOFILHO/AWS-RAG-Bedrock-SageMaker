@@ -39,24 +39,29 @@ def create_app(
     db: Path = sql.DEFAULT_DB,
     uploads: Path = DEFAULT_UPLOADS,
 ) -> FastAPI:
+    def get_models() -> Models:
+        # Built on first need, so a missing AWS profile or login surfaces per question, not as a crash at start-up.
+        if app.state.models is None:
+            app.state.models = bedrock_models(Settings.from_env())
+        return app.state.models
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        app.state.models = models or bedrock_models(Settings.from_env())
-        m = app.state.models
+        app.state.models = models
         opened = []
 
         def default_pdf_store():
             if not opened:
-                opened.append(pdf.store(m))
+                opened.append(pdf.store(get_models()))
             return opened[0]
 
         try:
             default_pdf_store()
         except Exception as error:
-            # No AWS access yet: start anyway, and let each question say so (the PDF opens again on the next one).
+            # No AWS access yet (login, region or profile): start anyway, and let each question say so (the PDF opens again on the next one).
             if aws_access_message(error) is None:
                 raise
-        app.state.default_pdf = lambda question: pdf.answer(question, default_pdf_store(), m)
+        app.state.default_pdf = lambda question: pdf.answer(question, default_pdf_store(), get_models())
         app.state.answerers = {"pdf": app.state.default_pdf}
         app.state.pdf_name = pdf.DEFAULT_PDF.name
         yield
@@ -65,7 +70,7 @@ def create_app(
 
     def answerer(source: str) -> Callable[[str], str]:
         if source not in app.state.answerers:
-            m = app.state.models
+            m = get_models()
             if source == "web":
                 web_store = web.store(m, fetch)
                 app.state.answerers[source] = lambda question: web.answer(question, web_store, m)
@@ -92,7 +97,7 @@ def create_app(
 
     @app.put("/pdf")
     def put_pdf(name: str, content: Annotated[bytes, Body(media_type="application/pdf")]):
-        m = app.state.models
+        m = get_models()
         # The file is saved under a name we make up. The name the user sent is only shown back.
         uploads.mkdir(parents=True, exist_ok=True)
         path = uploads / f"{uuid.uuid4().hex}.pdf"
