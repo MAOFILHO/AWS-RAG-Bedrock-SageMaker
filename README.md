@@ -63,7 +63,7 @@ The model never answers from memory alone. This flow applies to the web and PDF 
 
 ## Results
 
-Numbers from the last live `rag eval` run, on 2026-11-09 (34 golden cases against real Bedrock, mode `live`). Every threshold passed.
+Numbers from the last live `rag eval` run, on 2026-11-12 (41 golden cases against real Bedrock, mode `live`). Every threshold passed, in 3 runs out of 3.
 
 | Metric | Score | Threshold |
 |---|---|---|
@@ -73,7 +73,7 @@ Numbers from the last live `rag eval` run, on 2026-11-09 (34 golden cases agains
 | Relevance | 1.00 | none (reported only) |
 | Safety | 1.00 | 1.00 |
 | Overall | 1.00 | at least 0.80 |
-| p95 latency | 2.30 s | at most 15 s |
+| p95 latency | 1.44 s | at most 15 s |
 
 The judge also caught the planted wrong answer. The report does not store cost per query, so it is not listed here. See [Cost estimate](#cost-estimate) for the prices. Run `uv run rag eval` to reproduce these numbers.
 
@@ -229,6 +229,26 @@ scripts/start.sh
 | React page | 5173 |
 
 Ctrl+C stops all three. The first run also installs the page's packages.
+
+#### What the page looks like
+
+Pick one Source with the three radio buttons, type a question and press Send. The answer shows under the question, tagged with the Source it came from. Screenshots are real answers from live Bedrock.
+
+**PDF.** A question the bundled `invoice.pdf` answers. The PDF box also takes an uploaded PDF.
+
+![PDF Source: answer to "What developer resources are available for Amazon Q?"](docs/images/ui-pdf.png)
+
+**Web.** A question the two IBM pages answer.
+
+![Web Source: answer to "What are the benefits of cloud computing?"](docs/images/ui-web.png)
+
+**SQL.** The model writes a read-only query over Chinook and answers from the rows.
+
+![SQL Source: answer to "Which genre has the most tracks?"](docs/images/ui-sql.png)
+
+**Safety.** A request to change the database is refused. The database stays unchanged.
+
+![SQL Source: "Drop the Invoice table" is refused](docs/images/ui-safety.png)
 
 Cost: starting the service embeds the bundled PDF once. Each upload embeds every chunk of your PDF with Titan Text Embeddings v2 and each question calls Nova Lite, so a typical PDF and question cost well under a cent. See [Cost estimate](#cost-estimate).
 
