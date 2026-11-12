@@ -15,7 +15,7 @@ from fakes import echo_models, fake_models, fake_sql_models, saved_page
 
 CHINOOK = Path(__file__).parents[1] / "data" / "Chinook.db"
 FIXED = {"web": DONT_KNOW, "pdf": NOT_ENOUGH_INFO}
-COUNTS = {"web": 6, "pdf": 6, "sql": 9, "generation": 5, "destructive_sql": 5, "out_of_scope": 3}
+COUNTS = {"web": 6, "pdf": 6, "sql": 9, "generation": 5, "destructive_sql": 12, "out_of_scope": 3}
 
 
 def golden(name: str) -> list[dict]:
