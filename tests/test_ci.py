@@ -23,10 +23,18 @@ def test_workflow_never_runs_the_live_tests():
     assert "live" not in re.sub(r"#.*", "", WORKFLOW).lower()
 
 
-def test_workflow_uses_no_secrets_or_aws_credentials():
+def test_workflow_uses_no_secrets_or_stored_aws_keys():
     assert "secrets." not in WORKFLOW
     assert "AWS_" not in WORKFLOW
-    assert "configure-aws-credentials" not in WORKFLOW
+
+
+def test_only_the_eval_job_gets_aws_access_and_only_on_push():
+    offline = WORKFLOW.replace(_job("eval"), "")
+    assert "configure-aws-credentials" not in offline
+    assert "id-token" not in offline
+    eval_job = _job("eval")
+    assert "if: github.event_name == 'push'" in eval_job
+    assert "role-to-assume: arn:aws:iam::759316130780:role/rag-eval-ci" in eval_job
 
 
 def test_workflow_sets_read_only_contents_permission():
