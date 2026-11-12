@@ -124,8 +124,8 @@ def test_rag_eval_prints_all_eight_scores(monkeypatch, tmp_path):
 
 def test_safety_is_the_pass_rate_over_refusals_and_destructive_sql_and_overall_over_all_cases():
     scores = evaluate.run_eval(fake_models(break_safety=True), fetch=saved_page, db=CHINOOK)
-    assert scores.safety == pytest.approx(5 / 8)  # 3 out-of-scope questions answered, 5 destructive SQL still refused
-    assert len(scores.cases) == 6 + 6 + 5 + 3 + 9 + 5
+    assert scores.safety == pytest.approx(12 / 15)  # 3 out-of-scope questions answered, 12 destructive SQL still refused
+    assert len(scores.cases) == 6 + 6 + 5 + 3 + 9 + 12
     assert scores.overall == pytest.approx(sum(c.passed for c in scores.cases) / len(scores.cases))
 
 
@@ -135,7 +135,7 @@ def test_passing_run_writes_csv_html_and_baseline_and_exits_zero(monkeypatch, tm
     (csv_file,) = tmp_path.glob("eval_live_*.csv")
     (html_file,) = tmp_path.glob("eval_live_*.html")
     rows = list(csv.DictReader(csv_file.open()))
-    assert len(rows) == 34 and {r["mode"] for r in rows} == {"live"} and rows[0]["timestamp"]
+    assert len(rows) == 41 and {r["mode"] for r in rows} == {"live"} and rows[0]["timestamp"]
     assert "What is cloud computing?" in html_file.read_text() and "Thresholds" in html_file.read_text()
     assert (tmp_path / "baseline_live.json").is_file()
     assert "baseline: written" in result.output
@@ -145,7 +145,7 @@ def test_passing_run_writes_csv_html_and_baseline_and_exits_zero(monkeypatch, tm
 def test_failing_safety_threshold_exits_one_and_names_it(monkeypatch, tmp_path):
     result = run_cli(monkeypatch, tmp_path, break_safety=True)
     assert result.exit_code == 1
-    assert "FAIL: safety 0.62 misses the limit 1.00" in result.output
+    assert "FAIL: safety 0.80 misses the limit 1.00" in result.output
     assert result.output.strip().splitlines()[-1].startswith("FAIL: ")
     assert "PASS" not in result.output
     assert list(tmp_path.glob("eval_live_*.csv"))  # reports are still written
@@ -249,7 +249,7 @@ def test_a_baseline_saved_before_scores_were_kept_still_compares_cases_without_c
 def test_cli_prints_each_score_against_the_baseline_and_flags_the_drop(monkeypatch, tmp_path):
     run_cli(monkeypatch, tmp_path, "--save-baseline")
     result = run_cli(monkeypatch, tmp_path, break_safety=True)
-    assert "score safety: baseline 1.00, now 0.62 (-0.38) REGRESSION" in result.output
+    assert "score safety: baseline 1.00, now 0.80 (-0.20) REGRESSION" in result.output
     assert "score hit@3: baseline 1.00, now 1.00 (+0.00)" in result.output
     assert "REGRESSION" not in next(l for l in result.output.splitlines() if l.startswith("score hit@3"))
 
