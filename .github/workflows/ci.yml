@@ -32,3 +32,23 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+  eval:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+        with:
+          role-to-assume: arn:aws:iam::759316130780:role/rag-eval-ci
+          aws-region: us-east-1
+      - run: uv sync --frozen
+      - run: uv run rag eval --out eval-reports
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: eval-reports
+          path: eval-reports
