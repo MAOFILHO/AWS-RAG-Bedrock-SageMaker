@@ -3,7 +3,7 @@
   "description": "AWS RAG Bedrock SageMaker build board",
   "project": {
     "owner": "MAOFILHO",
-    "title": "AWS-RAG-Bedrock-SageMaker board",
+    "title": "AWS-Bedrock-RAG-Eval board",
     "number": 5
   },
   "worker_backend": "workflow",
@@ -28,7 +28,7 @@
   },
   "repo": {
     "path": ".",
-    "remote": "https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker"
+    "remote": "https://github.com/MAOFILHO/AWS-Bedrock-RAG-Eval"
   },
   "base_branch": "staging",
   "timezone": "America/Toronto",

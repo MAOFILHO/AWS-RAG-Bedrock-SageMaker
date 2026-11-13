@@ -4,7 +4,7 @@
 ![AWS](https://img.shields.io/badge/AWS-Bedrock-FF9900?logo=amazon-aws&logoColor=white)
 ![uv](https://img.shields.io/badge/uv-managed-6C3FC5)
 ![Tests](https://img.shields.io/badge/Tests-offline-green)
-[![CI](https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/actions/workflows/ci.yml/badge.svg)](https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker/actions/workflows/ci.yml)
+[![CI](https://github.com/MAOFILHO/AWS-Bedrock-RAG-Eval/actions/workflows/ci.yml/badge.svg)](https://github.com/MAOFILHO/AWS-Bedrock-RAG-Eval/actions/workflows/ci.yml)
 
 Ask questions about web pages, a PDF or a SQL database from the terminal. Answers come from Amazon Nova Lite on AWS Bedrock. For web pages and the PDF, the answer is grounded in text retrieved with Titan Text Embeddings v2. For the SQL database, the model writes a read-only query and answers from its rows. When the Source holds no answer, the model says so.
 
@@ -160,8 +160,8 @@ Setup takes 6 steps.
 2. Clone the repo and install the dependencies. `uv` installs Python 3.12 if it is missing.
 
    ```bash
-   git clone https://github.com/MAOFILHO/AWS-RAG-Bedrock-SageMaker.git
-   cd AWS-RAG-Bedrock-SageMaker
+   git clone https://github.com/MAOFILHO/AWS-Bedrock-RAG-Eval.git
+   cd AWS-Bedrock-RAG-Eval
    uv sync --frozen
    ```
 

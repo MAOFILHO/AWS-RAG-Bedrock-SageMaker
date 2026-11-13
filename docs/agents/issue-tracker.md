@@ -1,6 +1,6 @@
 # Issue tracker
 
-Tickets live on GitHub: `MAOFILHO/AWS-RAG-Bedrock-SageMaker`, board `AWS-RAG-Bedrock-SageMaker board` (#5).
+Tickets live on GitHub: `MAOFILHO/AWS-Bedrock-RAG-Eval`, board `AWS-Bedrock-RAG-Eval board` (#5).
 
 ## Ticket format
 

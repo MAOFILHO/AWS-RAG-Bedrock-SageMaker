@@ -1,4 +1,4 @@
-# Project: AWS-RAG-Bedrock-SageMaker
+# Project: AWS-Bedrock-RAG-Eval
 
 Course material on retrieval-augmented generation (RAG) with AWS Bedrock and SageMaker.
 

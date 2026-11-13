@@ -11,8 +11,8 @@
         "StringEquals": {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
           "token.actions.githubusercontent.com:sub": [
-            "repo:MAOFILHO@69284062/AWS-RAG-Bedrock-SageMaker@1447618106:ref:refs/heads/staging",
-            "repo:MAOFILHO/AWS-RAG-Bedrock-SageMaker:ref:refs/heads/staging"
+            "repo:MAOFILHO@69284062/AWS-Bedrock-RAG-Eval@1447618106:ref:refs/heads/staging",
+            "repo:MAOFILHO/AWS-Bedrock-RAG-Eval:ref:refs/heads/staging"
           ]
         }
       }
