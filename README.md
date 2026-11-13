@@ -324,6 +324,12 @@ The HTML report lists each threshold, the regressions against the baseline and e
 
 ![Eval report: all 41 cases PASS](docs/images/eval-report-cases.png)
 
+#### Runs in CI
+
+Every push to `staging` runs three jobs: the offline tests, the web build and the live eval. The eval signs in to AWS through GitHub OIDC, so GitHub stores no AWS keys. A threshold miss turns the check red. Pull requests run only the two offline jobs.
+
+![GitHub Actions on staging: tests, web and eval all green](docs/images/ci-green.png)
+
 #### Benchmark history
 
 | Date | Cases | Result |
