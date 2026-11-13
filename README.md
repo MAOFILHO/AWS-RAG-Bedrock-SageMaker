@@ -90,7 +90,7 @@ rag ask --source web|pdf|sql "question"
         ▼
 ┌── Source pipelines ───────────────────────────┐
 │  web.py   fetch 2 IBM pages → text → chunks   │
-│  pdf.py   read data/invoice.pdf → chunks          │
+│  pdf.py   read data/invoice.pdf → chunks      │
 │  sql.py   SELECT-only query, read-only SQLite │
 └───────────────────┬───────────────────────────┘
                     ▼
